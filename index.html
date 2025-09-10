@@ -678,7 +678,7 @@
                 snapshot.forEach((doc) => {
                     const data = doc.data();
                     console.log("Processing document:", data);
-                    const residentsArray = JSON.parse(data.residents);
+                    const residentsArray = data.residents; // CORRECTED LINE
                     const residentsHtml = residentsArray.map(r => `
                         <div class="p-2 bg-gray-50 rounded-md my-2">
                             <strong>Name:</strong> ${r.name}<br>
