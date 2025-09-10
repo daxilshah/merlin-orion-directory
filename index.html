@@ -727,8 +727,6 @@
     });
 
     async function initializeFirebase() {
-        // Here we'll use our own firebaseConfig for the real deployment.
-        // We'll also use the provided globals for this specific environment.
         const effectiveConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig;
         
         if (effectiveConfig) {
@@ -737,22 +735,32 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                // Wait for the sign-in to complete before enabling app functionality
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                    console.log("Signed in with custom token. User ID:", auth.currentUser.uid);
-                } else {
-                    await signInAnonymously(auth);
-                    console.log("Signed in anonymously. User ID:", auth.currentUser.uid);
-                }
-                
-                isFirebaseReady = true;
-                console.log("Firebase is ready.");
+                // Use the onAuthStateChanged listener to handle the state once it's ready.
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        // User is signed in. Now we know the DB is ready for operations.
+                        isFirebaseReady = true;
+                        console.log("Firebase is ready. User ID:", user.uid);
+                        // Initial app setup after successful authentication
+                        generateFlatNumbers();
+                        createResidentSection();
+                    } else {
+                        // User is signed out or not yet authenticated.
+                        isFirebaseReady = false;
+                        console.log("User is not authenticated. Waiting for token...");
+                    }
+                });
 
-                // Initial app setup after successful authentication
-                generateFlatNumbers();
-                // This call was moved here to ensure it only runs once
-                createResidentSection();
+                // Sign in, but don't await. The listener will handle the result.
+                if (initialAuthToken) {
+                    signInWithCustomToken(auth, initialAuthToken)
+                        .then(() => console.log("Sign-in process started with custom token."))
+                        .catch((e) => console.error("Sign-in with custom token failed:", e));
+                } else {
+                    signInAnonymously(auth)
+                        .then(() => console.log("Sign-in process started anonymously."))
+                        .catch((e) => console.error("Anonymous sign-in failed:", e));
+                }
 
             } catch (e) {
                 console.error("Failed to initialize Firebase or sign in:", e);
