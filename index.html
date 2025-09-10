@@ -525,19 +525,19 @@
             e.preventDefault();
 
             console.log("Submit event handler triggered.");
-
+        
             if (!isFirebaseReady || !auth.currentUser) {
                 console.error("Firebase is not initialized or user is not authenticated.");
                 showMessage("Database is not ready. Please try again.", "error");
                 return;
             }
-
+        
             // Get form data
             const flatNumber = document.getElementById('flatNumber').value;
             const flatStatus = document.getElementById('flatStatus').value;
             const residents = [];
             const residentSections = residentsContainer.querySelectorAll('.resident-section');
-
+        
             residentSections.forEach((section, index) => {
                 const name = section.querySelector(`#name${index + 1}`).value;
                 const contact = section.querySelector(`#contact${index + 1}`).value;
@@ -547,7 +547,7 @@
                 const education = section.querySelector(`#education${index + 1}`).value;
                 const isPrimaryContact = section.querySelector(`#primaryContact${index + 1}`).checked;
                 const relation = section.querySelector(`#relation${index + 1}`).value;
-
+        
                 residents.push({
                     name,
                     contact,
@@ -559,16 +559,17 @@
                     relation
                 });
             });
-
+        
             const formData = {
                 flatNumber,
                 flatStatus,
-                residents: JSON.stringify(residents), // Serialize the array to a JSON string
-                submissionTimestamp: new Date()
+                residents: JSON.stringify(residents),
+                // USE THE SERVER TIMESTAMP INSTEAD OF NEW DATE()
+                submissionTimestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
             console.log('Submit formData', formData);
-
+        
             try {
                 // Use the flat number as the document ID for easy lookup
                 const docRef = doc(db, 'residents', flatNumber);
@@ -581,6 +582,7 @@
                 residentCount = 0;
                 createResidentSection();
             } catch (error) {
+                // Log the error to get a more specific reason for the failure
                 console.error("Error writing document to Firestore: ", error);
                 showMessage("An error occurred. Please try again.", "error");
             }
