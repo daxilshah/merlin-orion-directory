@@ -1,14 +1,21 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 setLogLevel('debug');
 
-// Use the globally provided Firebase configuration and auth token
-const firebaseConfig = JSON.parse(__firebase_config);
-const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+// Access environment variables using import.meta.env
+const firebaseConfig = {
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID
+};
+
+const appId = import.meta.env.VITE_FIREBASE_APP_ID;
 
 let app, auth, db;
 let isFirebaseReady = false;
@@ -239,6 +246,7 @@ dataTableBody.addEventListener('click', async (e) => {
         } catch (error) {
             console.error("Error fetching document for edit:", error);
             showMessage("An error occurred while fetching data for editing.", "error");
+            return;
         }
     }
 });
@@ -288,7 +296,7 @@ exportDataBtn.addEventListener('click', async () => {
 
 async function initializeFirebase() {
     if (!firebaseConfig.apiKey) {
-        showMessage("Firebase configuration not found. Please check your Netlify environment variables.", "error");
+        showMessage("Firebase configuration not found. Please add the VITE_FIREBASE_* environment variables to Netlify.", "error");
         return;
     }
 
@@ -297,30 +305,21 @@ async function initializeFirebase() {
         auth = getAuth(app);
         db = getFirestore(app);
 
-        // Sign in with the provided custom token or anonymously if not available
+        // Sign in anonymously
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 console.log("Authenticated user:", user.uid);
-                // The user is authenticated, we can proceed with other Firebase operations
             } else {
-                console.log("No user is signed in.");
+                console.log("No user is signed in. Signing in anonymously...");
                 try {
                     await signInAnonymously(auth);
-                    console.log("Signed in anonymously.");
+                    console.log("Signed in anonymously. User ID:", auth.currentUser.uid);
                 } catch (e) {
                     console.error("Failed to sign in anonymously:", e);
                 }
             }
         });
-
-        if (initialAuthToken) {
-            await signInWithCustomToken(auth, initialAuthToken);
-            console.log("Signed in with custom token. User ID:", auth.currentUser.uid);
-        } else {
-            await signInAnonymously(auth);
-            console.log("Signed in anonymously. User ID:", auth.currentUser.uid);
-        }
-
+        
         isFirebaseReady = true;
         console.log("Firebase is ready.");
 
