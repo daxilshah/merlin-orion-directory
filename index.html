@@ -524,6 +524,8 @@
         residentForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            console.log("Submit event handler triggered.");
+
             if (!isFirebaseReady || !auth.currentUser) {
                 console.error("Firebase is not initialized or user is not authenticated.");
                 showMessage("Database is not ready. Please try again.", "error");
@@ -564,6 +566,8 @@
                 residents: JSON.stringify(residents), // Serialize the array to a JSON string
                 submissionTimestamp: new Date()
             };
+
+            console.log('Submit formData', formData);
 
             try {
                 // Use the flat number as the document ID for easy lookup
