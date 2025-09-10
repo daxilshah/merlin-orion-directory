@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, signInWithCustomToken, signInAnonymously } from "firebase/auth";
+import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, getDocs, deleteDoc } from "firebase/firestore";
 import { setLogLevel } from "firebase/firestore";
 
