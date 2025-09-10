@@ -230,11 +230,18 @@ const provider = new GoogleAuthProvider();
 
 // Ensure user is signed in
 let currentUser = null;
+// Trigger sign-in on page load
+signInWithPopup(auth, provider).catch(console.error);
+
 onAuthStateChanged(auth, (user) => {
-    if (!user) {
-        signInWithPopup(auth, provider);
+    if (user) {
+        isFirebaseReady = true;
+        generateFlatNumbers();
+        createResidentSection();
+        setupEventListeners();
     } else {
-        currentUser = user;
+        isFirebaseReady = false;
+        console.log("User not signed in yet");
     }
 });
 
