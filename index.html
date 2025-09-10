@@ -169,30 +169,58 @@ const generateFlatNumbers = () => {
     }
 };
 
-const createResidentSection = (data={})=>{
+const createResidentSection = (data = {}) => {
     residentCount++;
-    const section = document.createElement('div');
-    section.className = "resident-section relative mt-4";
+    const section = document.createElement("div");
+    section.classList.add("resident-section", "p-4", "border", "rounded", "relative", "mb-4");
     section.innerHTML = `
-        <h3 class="font-bold text-gray-700 mb-4 text-lg">Resident #${residentCount}</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <button type="button" class="absolute top-2 right-2 text-red-600 font-bold hover:text-red-800 removeResidentBtn">&times;</button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Row 1 -->
             <div class="input-group">
-                <label>Name <span class="text-red-500">*</span></label>
+                <label>Full Name <span class="text-red-500">*</span></label>
                 <input type="text" required placeholder="Full Name" value="${data.name || ''}">
             </div>
+            <div class="input-group">
+                <label>Contact Number <span class="text-red-500">*</span></label>
+                <input type="text" required placeholder="Contact Number" value="${data.contact || ''}">
+            </div>
+
+            <!-- Row 2 -->
             <div class="input-group">
                 <label>Gender <span class="text-red-500">*</span></label>
                 <select required>
                     <option value="" disabled ${!data.gender ? 'selected' : ''}>Select gender</option>
                     <option value="Male" ${data.gender==='Male' ? 'selected' : ''}>Male</option>
                     <option value="Female" ${data.gender==='Female' ? 'selected' : ''}>Female</option>
-                    <option value="Other" ${data.gender==='Other' ? 'selected' : ''}>Other</option>
                 </select>
             </div>
             <div class="input-group">
                 <label>Date of Birth</label>
                 <input type="date" value="${data.dob || ''}">
             </div>
+
+            <!-- Row 3 -->
+            <div class="input-group flex items-center">
+                <input type="checkbox" id="primaryContact${residentCount}" ${data.isPrimary ? 'checked' : ''}>
+                <label for="primaryContact${residentCount}" class="ml-2">Is this Primary Contact?</label>
+            </div>
+            <div class="input-group">
+                <label>Relation to Primary Contact</label>
+                <select>
+                    <option value="" disabled ${!data.relation ? 'selected' : ''}>Select Relation</option>
+                    <option value="Self" ${data.relation==='Self' ? 'selected' : ''}>Self</option>
+                    <option value="Spouse" ${data.relation==='Spouse' ? 'selected' : ''}>Spouse</option>
+                    <option value="Father" ${data.relation==='Father' ? 'selected' : ''}>Father</option>
+                    <option value="Mother" ${data.relation==='Mother' ? 'selected' : ''}>Mother</option>
+                    <option value="Son" ${data.relation==='Son' ? 'selected' : ''}>Son</option>
+                    <option value="Daughter" ${data.relation==='Daughter' ? 'selected' : ''}>Daughter</option>
+                    <option value="Daughter In Law" ${data.relation==='Daughter In Law' ? 'selected' : ''}>Daughter In Law</option>
+                    <option value="Others" ${data.relation==='Others' ? 'selected' : ''}>Others</option>
+                </select>
+            </div>
+
+            <!-- Row 4 -->
             <div class="input-group">
                 <label>Education</label>
                 <input type="text" placeholder="Education" value="${data.education || ''}">
@@ -202,15 +230,13 @@ const createResidentSection = (data={})=>{
                 <input type="text" placeholder="Occupation" value="${data.occupation || ''}">
             </div>
         </div>
-        <button type="button" class="absolute top-4 right-4 text-red-500 font-bold hover:text-red-700 removeResidentBtn">Remove</button>
     `;
     residentsContainer.appendChild(section);
 
-    section.querySelector('.removeResidentBtn').addEventListener('click', ()=>{
-        section.remove();
-    });
+    section.querySelector(".removeResidentBtn").addEventListener("click", () => section.remove());
 };
 
+createResidentSection();
 addResidentBtn.addEventListener('click', ()=>createResidentSection());
 
 googleSignInBtn.addEventListener('click', async ()=>{
