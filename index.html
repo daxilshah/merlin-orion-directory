@@ -767,16 +767,17 @@
                     }
                 });
 
+                // Temporarily Disabling.
                 // Sign in, but don't await. The listener will handle the result.
-                if (initialAuthToken) {
-                    signInWithCustomToken(auth, initialAuthToken)
-                        .then(() => console.log("Sign-in process started with custom token."))
-                        .catch((e) => console.error("Sign-in with custom token failed:", e));
-                } else {
+                // if (initialAuthToken) {
+                //     signInWithCustomToken(auth, initialAuthToken)
+                //         .then(() => console.log("Sign-in process started with custom token."))
+                //         .catch((e) => console.error("Sign-in with custom token failed:", e));
+                // } else {
                     signInAnonymously(auth)
                         .then(() => console.log("Sign-in process started anonymously."))
                         .catch((e) => console.error("Anonymous sign-in failed:", e));
-                }
+                // }
 
             } catch (e) {
                 console.error("Failed to initialize Firebase or sign in:", e);
