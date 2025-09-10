@@ -748,7 +748,9 @@
             try {
                 app = initializeApp(effectiveConfig);
                 auth = getAuth(app);
-                db = getFirestore(app);
+                db = getFirestore(app, {
+                    databaseId: "merlin-orion"
+                });
 
                 // Use the onAuthStateChanged listener to handle the state once it's ready.
                 onAuthStateChanged(auth, (user) => {
