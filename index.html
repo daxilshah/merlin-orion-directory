@@ -257,7 +257,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, getDocs, deleteDoc, FieldValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, getDocs, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     setLogLevel('debug');
@@ -565,7 +565,7 @@
                 flatStatus,
                 residents: JSON.stringify(residents),
                 // USE THE SERVER TIMESTAMP INSTEAD OF NEW DATE()
-                submissionTimestamp: FieldValue.serverTimestamp()
+                submissionTimestamp: serverTimestamp()
             };
 
             console.log('Submit formData', formData);
