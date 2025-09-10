@@ -501,7 +501,7 @@
          }
 
         try {
-            const docRef = doc(db, `artifacts/${appId}/public/data/residents`, selectedFlatNumber);
+            const docRef = doc(db, 'residents', selectedFlatNumber);
             const docSnap = await getDoc(docRef);
 
             residentsContainer.innerHTML = ''; // Clear existing resident sections
@@ -574,7 +574,7 @@
 
         try {
             // Use the flat number as the document ID for easy lookup
-            const docRef = doc(db, `artifacts/${appId}/public/data/residents`, flatNumber);
+            const docRef = doc(db, 'residents', flatNumber);
             await setDoc(docRef, formData);
             console.log("Form data saved successfully!");
             showMessage("Form submitted successfully! Thank you for providing your information.", "success");
@@ -613,7 +613,7 @@
         }
 
         console.log("Attempting to load data from Firestore...");
-        const residentsCollection = collection(db, `artifacts/${appId}/public/data/residents`);
+        const residentsCollection = collection(db, 'residents');
         onSnapshot(residentsCollection, (snapshot) => {
             console.log(`Received snapshot. Number of documents: ${snapshot.docs.length}`);
             dataTableBody.innerHTML = ''; // Clear table
@@ -680,7 +680,7 @@
         }
 
         try {
-            const residentsCollection = collection(db, `artifacts/${appId}/public/data/residents`);
+            const residentsCollection = collection(db, 'residents');
             const snapshot = await getDocs(residentsCollection);
 
             if (snapshot.empty) {
