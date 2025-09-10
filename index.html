@@ -497,7 +497,22 @@
 
             try {
                 const docRef = doc(db, 'residents', selectedFlatNumber);
-                const docSnap = await getDoc(docRef);
+                try {
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        const residentData = docSnap.data();
+                        console.log("Document data:", residentData);
+                        // Add your logic to handle the data here, for example:
+                        // displayResidentDetails(residentData);
+                    } else {
+                        // doc.data() will be undefined in this case
+                        console.log("No such document!");
+                        showMessage("No resident found for this flat number.", "warning");
+                    }
+                } catch (e) {
+                    console.error("Error getting document:", e);
+                    showMessage(`Error: ${e.message}`, "error");
+                }
 
                 residentsContainer.innerHTML = ''; // Clear existing resident sections
                 residentCount = 0;
