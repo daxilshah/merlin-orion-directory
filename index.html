@@ -11,7 +11,7 @@
             font-family: 'Inter', sans-serif;
             background-color: #f0f4f8;
         }
-        
+
         .background-collage {
             position: fixed;
             top: 0;
@@ -27,7 +27,7 @@
             position: absolute;
             opacity: 0.2;
         }
-        
+
         .background-collage img {
             object-fit: cover;
         }
@@ -63,7 +63,7 @@
             height: 40%;
             background: linear-gradient(to bottom left, #a5b4fc, transparent);
         }
-        
+
         .gradient-bottom-left {
             bottom: 0;
             left: 0;
@@ -165,7 +165,6 @@
 </div>
 
 <div id="appContainer" class="form-container">
-    <!-- Form view -->
     <div id="formView">
         <div class="flex flex-col items-center mb-6 text-center">
             <h1 class="text-3xl font-bold text-gray-800 mb-2">Merlin Orion Residents Directory</h1>
@@ -203,8 +202,7 @@
                 </div>
             </div>
             <div id="residentsContainer" class="mt-8 space-y-6">
-                <!-- Resident sections will be added here dynamically -->
-            </div>
+                </div>
             <div class="flex items-center justify-between mt-6">
                 <button type="button" id="showDataBtn"
                         class="py-3 px-4 rounded-md text-sm font-semibold text-gray-800 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-colors">
@@ -225,7 +223,6 @@
         </form>
     </div>
 
-    <!-- Data view -->
     <div id="dataView" class="hidden">
         <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Submitted Data</h2>
         <div class="table-container">
@@ -239,8 +236,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Data will be loaded here -->
-                </tbody>
+                    </tbody>
             </table>
         </div>
         <div class="flex justify-center mt-6 gap-4">
@@ -254,11 +250,10 @@
             </button>
         </div>
     </div>
-    
+
     <div id="messageBox" class="hidden mt-4 p-4 rounded-md text-sm message-box-transition" role="alert"></div>
 </div>
 
-<!-- Firebase SDKs -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -266,7 +261,7 @@
     import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     setLogLevel('debug');
-    
+
     // NOTE: This is how Netlify will inject your environment variables.
     const firebaseConfig = {
       apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -281,7 +276,7 @@
     // If you were deploying this code, you would use your own firebaseConfig.
     const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-    
+
     // Firebase Initialization
     let app, auth, db;
     let isFirebaseReady = false;
@@ -299,7 +294,7 @@
     const flatNumberSelect = document.getElementById('flatNumber');
     const flatStatusSelect = document.getElementById('flatStatus');
     const exportDataBtn = document.getElementById('exportDataBtn');
-    
+
     // Function to handle the placeholder color for select elements
     const updateSelectPlaceholderColor = (selectElement) => {
         if (!selectElement) return;
@@ -309,12 +304,11 @@
             selectElement.classList.remove('placeholder-color');
         }
     };
-    
+
     // Function to display messages to the user
     function showMessage(message, type = "info") {
         messageBox.textContent = message;
-        messageBox.classList.remove("hidden", "bg-green-100", "text-green-800", "bg-red-100", "text-red-800", "bg-sky-100", "text-sky-800");
-        messageBox.classList.remove("message-box-hidden");
+        messageBox.classList.remove("hidden", "bg-green-100", "text-green-800", "bg-red-100", "text-red-800", "bg-sky-100", "text-sky-800", "message-box-hidden");
 
         if (type === "success") {
             messageBox.classList.add("bg-green-100", "text-green-800");
@@ -323,7 +317,7 @@
         } else {
             messageBox.classList.add("bg-sky-100", "text-sky-800");
         }
-        
+
         // Use a timeout to add the hidden class and trigger transition
         setTimeout(() => {
             messageBox.classList.add("message-box-hidden");
@@ -401,7 +395,7 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <input type="checkbox" id="primaryContact${residentCount}" 
+                    <input type="checkbox" id="primaryContact${residentCount}"
                            class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                            ${residentData.isPrimaryContact ? 'checked' : ''}>
                     <label for="primaryContact${residentCount}" class="text-sm text-gray-600">Is this a Primary Contact?</label>
@@ -480,131 +474,184 @@
             updateSelectPlaceholderColor(bloodGroupSelect);
             updateSelectPlaceholderColor(relationSelect);
         };
-        
+
         // Set initial color on creation
         setDateColor();
         updateSelects();
-        
+
         // Listen for changes
         dobInput.addEventListener('change', setDateColor);
         bloodGroupSelect.addEventListener('change', updateSelects);
         relationSelect.addEventListener('change', updateSelects);
     };
 
-    // Pre-populate form if data exists
-    flatNumberSelect.addEventListener('change', async (e) => {
-        const selectedFlatNumber = e.target.value;
-        if (!isFirebaseReady || !auth.currentUser) {
-             console.log("Firebase is not ready yet.");
-             showMessage("Database is not ready. Please wait a moment and try again.", "info");
-             return;
-         }
+    // This function adds all event listeners after Firebase is ready.
+    const setupEventListeners = () => {
+        flatNumberSelect.addEventListener('change', async (e) => {
+            const selectedFlatNumber = e.target.value;
+            if (!isFirebaseReady || !auth.currentUser) {
+                 console.log("Firebase is not ready yet.");
+                 showMessage("Database is not ready. Please wait a moment and try again.", "info");
+                 return;
+             }
 
-        try {
-            const docRef = doc(db, 'residents', selectedFlatNumber);
-            const docSnap = await getDoc(docRef);
+            try {
+                const docRef = doc(db, 'residents', selectedFlatNumber);
+                const docSnap = await getDoc(docRef);
 
-            residentsContainer.innerHTML = ''; // Clear existing resident sections
-            residentCount = 0;
+                residentsContainer.innerHTML = ''; // Clear existing resident sections
+                residentCount = 0;
 
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                flatStatusSelect.value = data.flatStatus;
-                const residentsArray = JSON.parse(data.residents);
-                residentsArray.forEach(resident => createResidentSection(resident));
-            } else {
-                // If no data exists, reset to one blank resident section
-                flatStatusSelect.value = "";
-                createResidentSection();
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    flatStatusSelect.value = data.flatStatus;
+                    const residentsArray = JSON.parse(data.residents);
+                    residentsArray.forEach(resident => createResidentSection(resident));
+                } else {
+                    // If no data exists, reset to one blank resident section
+                    flatStatusSelect.value = "";
+                    createResidentSection();
+                }
+                updateSelectPlaceholderColor(flatStatusSelect);
+            } catch (error) {
+                console.error("Error fetching document:", error);
+                showMessage("An error occurred while loading data.", "error");
             }
-            updateSelectPlaceholderColor(flatStatusSelect);
-        } catch (error) {
-            console.error("Error fetching document:", error);
-            showMessage("An error occurred while loading data.", "error");
-        }
-    });
-
-
-    // Event listeners
-    addResidentBtn.addEventListener('click', createResidentSection);
-
-    residentForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        if (!isFirebaseReady || !auth.currentUser) {
-            console.error("Firebase is not initialized or user is not authenticated.");
-            showMessage("Database is not ready. Please try again.", "error");
-            return;
-        }
-
-        // Get form data
-        const flatNumber = document.getElementById('flatNumber').value;
-        const flatStatus = document.getElementById('flatStatus').value;
-        const residents = [];
-        const residentSections = residentsContainer.querySelectorAll('.resident-section');
-
-        residentSections.forEach((section, index) => {
-            const name = section.querySelector(`#name${index + 1}`).value;
-            const contact = section.querySelector(`#contact${index + 1}`).value;
-            const dob = section.querySelector(`#dob${index + 1}`).value;
-            const bloodGroup = section.querySelector(`#bloodGroup${index + 1}`).value;
-            const occupation = section.querySelector(`#occupation${index + 1}`).value;
-            const education = section.querySelector(`#education${index + 1}`).value;
-            const isPrimaryContact = section.querySelector(`#primaryContact${index + 1}`).checked;
-            const relation = section.querySelector(`#relation${index + 1}`).value;
-
-            residents.push({
-                name,
-                contact,
-                dob,
-                bloodGroup,
-                occupation,
-                education,
-                isPrimaryContact,
-                relation
-            });
         });
 
-        const formData = {
-            flatNumber,
-            flatStatus,
-            residents: JSON.stringify(residents), // Serialize the array to a JSON string
-            submissionTimestamp: new Date()
-        };
+        addResidentBtn.addEventListener('click', createResidentSection);
 
-        try {
-            // Use the flat number as the document ID for easy lookup
-            const docRef = doc(db, 'residents', flatNumber);
-            await setDoc(docRef, formData);
-            console.log("Form data saved successfully!");
-            showMessage("Form submitted successfully! Thank you for providing your information.", "success");
-            residentForm.reset();
-            // Clear and reset the resident sections
-            residentsContainer.innerHTML = '';
-            residentCount = 0;
-            createResidentSection();
-        } catch (error) {
-            console.error("Error writing document to Firestore: ", error);
-            showMessage("An error occurred. Please try again.", "error");
-        }
-    });
+        residentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-    // View data functionality
-    showDataBtn.addEventListener('click', () => {
-        if (!isFirebaseReady || !auth.currentUser) {
-             console.log("Firebase is not ready yet.");
-             showMessage("Database is not ready. Please wait a moment and try again.", "info");
-             return;
-         }
-        formView.classList.add('hidden');
-        dataView.classList.remove('hidden');
-        loadData();
-    });
+            if (!isFirebaseReady || !auth.currentUser) {
+                console.error("Firebase is not initialized or user is not authenticated.");
+                showMessage("Database is not ready. Please try again.", "error");
+                return;
+            }
 
-    goBackBtn.addEventListener('click', () => {
-        formView.classList.remove('hidden');
-        dataView.classList.add('hidden');
-    });
+            // Get form data
+            const flatNumber = document.getElementById('flatNumber').value;
+            const flatStatus = document.getElementById('flatStatus').value;
+            const residents = [];
+            const residentSections = residentsContainer.querySelectorAll('.resident-section');
+
+            residentSections.forEach((section, index) => {
+                const name = section.querySelector(`#name${index + 1}`).value;
+                const contact = section.querySelector(`#contact${index + 1}`).value;
+                const dob = section.querySelector(`#dob${index + 1}`).value;
+                const bloodGroup = section.querySelector(`#bloodGroup${index + 1}`).value;
+                const occupation = section.querySelector(`#occupation${index + 1}`).value;
+                const education = section.querySelector(`#education${index + 1}`).value;
+                const isPrimaryContact = section.querySelector(`#primaryContact${index + 1}`).checked;
+                const relation = section.querySelector(`#relation${index + 1}`).value;
+
+                residents.push({
+                    name,
+                    contact,
+                    dob,
+                    bloodGroup,
+                    occupation,
+                    education,
+                    isPrimaryContact,
+                    relation
+                });
+            });
+
+            const formData = {
+                flatNumber,
+                flatStatus,
+                residents: JSON.stringify(residents), // Serialize the array to a JSON string
+                submissionTimestamp: new Date()
+            };
+
+            try {
+                // Use the flat number as the document ID for easy lookup
+                const docRef = doc(db, 'residents', flatNumber);
+                await setDoc(docRef, formData);
+                console.log("Form data saved successfully!");
+                showMessage("Form submitted successfully! Thank you for providing your information.", "success");
+                residentForm.reset();
+                // Clear and reset the resident sections
+                residentsContainer.innerHTML = '';
+                residentCount = 0;
+                createResidentSection();
+            } catch (error) {
+                console.error("Error writing document to Firestore: ", error);
+                showMessage("An error occurred. Please try again.", "error");
+            }
+        });
+
+        // View data functionality
+        showDataBtn.addEventListener('click', () => {
+            if (!isFirebaseReady || !auth.currentUser) {
+                 console.log("Firebase is not ready yet.");
+                 showMessage("Database is not ready. Please wait a moment and try again.", "info");
+                 return;
+             }
+            formView.classList.add('hidden');
+            dataView.classList.remove('hidden');
+            loadData();
+        });
+
+        goBackBtn.addEventListener('click', () => {
+            formView.classList.remove('hidden');
+            dataView.classList.add('hidden');
+        });
+
+        exportDataBtn.addEventListener('click', async () => {
+            if (!isFirebaseReady || !auth.currentUser) {
+                showMessage("Database not ready. Cannot export data.", "error");
+                return;
+            }
+
+            try {
+                const residentsCollection = collection(db, 'residents');
+                const snapshot = await getDocs(residentsCollection);
+
+                if (snapshot.empty) {
+                    showMessage("No data to export.", "info");
+                    return;
+                }
+
+                let csvContent = "Flat Number,Status,Residents\n";
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const residentsArray = JSON.parse(data.residents);
+                    const residentsString = residentsArray.map(r => {
+                        // Remove commas from string values to prevent issues in CSV
+                        const name = r.name ? r.name.replace(/,/g, '') : '';
+                        const contact = r.contact ? r.contact.replace(/,/g, '') : '';
+                        const dob = r.dob ? r.dob.replace(/,/g, '') : '';
+                        const bloodGroup = r.bloodGroup ? r.bloodGroup.replace(/,/g, '') : '';
+                        const occupation = r.occupation ? r.occupation.replace(/,/g, '') : '';
+                        const education = r.education ? r.education.replace(/,/g, '') : '';
+                        const isPrimary = r.isPrimaryContact ? 'Yes' : 'No';
+                        const relation = r.relation ? r.relation.replace(/,/g, '') : 'N/A';
+                        return `(Name: ${name}, Contact: ${contact}, DOB: ${dob}, Blood Group: ${bloodGroup}, Occupation: ${occupation}, Education: ${education}, Primary: ${isPrimary}, Relation: ${relation})`;
+                    }).join('; ');
+
+                    const sanitizedResidents = `"${residentsString.replace(/"/g, '""')}"`; // Double-quote and escape double quotes
+                    csvContent += `${data.flatNumber},${data.flatStatus},${sanitizedResidents}\n`;
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'merlin_orion_residents.csv');
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showMessage("Data exported successfully!", "success");
+
+            } catch (error) {
+                console.error("Error exporting data:", error);
+                showMessage("An error occurred during export. Please try again.", "error");
+            }
+        });
+    }
 
     const loadData = () => {
         if (!db || !auth.currentUser) {
@@ -673,62 +720,9 @@
         });
     };
 
-    exportDataBtn.addEventListener('click', async () => {
-        if (!isFirebaseReady || !auth.currentUser) {
-            showMessage("Database not ready. Cannot export data.", "error");
-            return;
-        }
-
-        try {
-            const residentsCollection = collection(db, 'residents');
-            const snapshot = await getDocs(residentsCollection);
-
-            if (snapshot.empty) {
-                showMessage("No data to export.", "info");
-                return;
-            }
-
-            let csvContent = "Flat Number,Status,Residents\n";
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const residentsArray = JSON.parse(data.residents);
-                const residentsString = residentsArray.map(r => {
-                    // Remove commas from string values to prevent issues in CSV
-                    const name = r.name ? r.name.replace(/,/g, '') : '';
-                    const contact = r.contact ? r.contact.replace(/,/g, '') : '';
-                    const dob = r.dob ? r.dob.replace(/,/g, '') : '';
-                    const bloodGroup = r.bloodGroup ? r.bloodGroup.replace(/,/g, '') : '';
-                    const occupation = r.occupation ? r.occupation.replace(/,/g, '') : '';
-                    const education = r.education ? r.education.replace(/,/g, '') : '';
-                    const isPrimary = r.isPrimaryContact ? 'Yes' : 'No';
-                    const relation = r.relation ? r.relation.replace(/,/g, '') : 'N/A';
-                    return `(Name: ${name}, Contact: ${contact}, DOB: ${dob}, Blood Group: ${bloodGroup}, Occupation: ${occupation}, Education: ${education}, Primary: ${isPrimary}, Relation: ${relation})`;
-                }).join('; ');
-                
-                const sanitizedResidents = `"${residentsString.replace(/"/g, '""')}"`; // Double-quote and escape double quotes
-                csvContent += `${data.flatNumber},${data.flatStatus},${sanitizedResidents}\n`;
-            });
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'merlin_orion_residents.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showMessage("Data exported successfully!", "success");
-
-        } catch (error) {
-            console.error("Error exporting data:", error);
-            showMessage("An error occurred during export. Please try again.", "error");
-        }
-    });
-
     async function initializeFirebase() {
         const effectiveConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig;
-        
+
         if (effectiveConfig) {
             try {
                 app = initializeApp(effectiveConfig);
@@ -744,6 +738,7 @@
                         // Initial app setup after successful authentication
                         generateFlatNumbers();
                         createResidentSection();
+                        setupEventListeners(); // Call the new function to set up listeners here.
                     } else {
                         // User is signed out or not yet authenticated.
                         isFirebaseReady = false;
