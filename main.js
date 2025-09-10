@@ -1,7 +1,7 @@
-import { initializeApp } from "firebase/app";
-import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "firebase/auth";
-import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, getDocs, deleteDoc } from "firebase/firestore";
-import { setLogLevel } from "firebase/firestore";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 setLogLevel('debug');
 
