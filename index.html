@@ -505,7 +505,7 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     flatStatusSelect.value = data.flatStatus;
-                    const residentsArray = JSON.parse(data.residents);
+                    const residentsArray = data.residents;
                     residentsArray.forEach(resident => createResidentSection(resident));
                 } else {
                     // If no data exists, reset to one blank resident section
@@ -623,7 +623,7 @@
                 let csvContent = "Flat Number,Status,Residents\n";
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    const residentsArray = JSON.parse(data.residents);
+                    const residentsArray = data.residents;
                     const residentsString = residentsArray.map(r => {
                         // Remove commas from string values to prevent issues in CSV
                         const name = r.name ? r.name.replace(/,/g, '') : '';
