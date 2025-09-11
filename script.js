@@ -1,7 +1,8 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, doc, setDoc, getDocs, collection, updateDoc, deleteDoc } from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDocs, collection, deleteDoc } from "firebase/firestore";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 
+// Firebase config
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
     authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -9,14 +10,14 @@ const firebaseConfig = {
     storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
     messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  };
+};
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// DOM Elements
+// DOM
 const signInBtn = document.getElementById("sign-in-btn");
 const signOutBtn = document.getElementById("sign-out-btn");
 const userDetails = document.getElementById("user-details");
@@ -36,9 +37,9 @@ const memberTemplate = document.getElementById("member-template").content;
 let currentUser = null;
 let editFlatId = null;
 
-// Populate Flat Number Dropdown (101-104 ... 1401-1404)
+// Populate Flat Number Dropdown
 function populateFlatNumbers(disabledFlats = []) {
-  flatNumberSelect.innerHTML = "";
+  flatNumberSelect.innerHTML = '<option value="">Select Flat Number</option>';
   for (let floor = 1; floor <= 14; floor++) {
     for (let flat = 1; flat <= 4; flat++) {
       const flatNo = `${floor}${flat.toString().padStart(2, "0")}`;
@@ -78,7 +79,7 @@ function addMemberPanel(data = {}) {
 // Clear Form
 function clearForm() {
   flatNumberSelect.value = "";
-  residentTypeSelect.value = "Owner";
+  residentTypeSelect.value = "";
   membersContainer.innerHTML = "";
   editFlatId = null;
 }
@@ -102,14 +103,13 @@ submitBtn.addEventListener("click", async () => {
     city: block.querySelector(".city").value
   }));
 
-  // Validation
   if (members.some(m => !m.fullName || !m.gender || !m.relation)) {
     return alert("Full Name, Gender, and Relation are required for all members.");
   }
 
   const memberEmails = members.map(m => m.email).filter(Boolean);
-
   const docRef = doc(db, "residents", flatId);
+
   await setDoc(docRef, {
     flatId,
     residentType,
@@ -122,10 +122,10 @@ submitBtn.addEventListener("click", async () => {
   alert("Data saved successfully!");
   clearForm();
   loadTable();
-  populateFlatNumbers(); // Refresh disabled flats
+  populateFlatNumbers();
 });
 
-// Load Submitted Data Table
+// Load Table
 async function loadTable() {
   tableView.style.display = "block";
   formView.style.display = "none";
@@ -133,14 +133,12 @@ async function loadTable() {
 
   const snapshot = await getDocs(collection(db, "residents"));
   const sortedDocs = snapshot.docs.sort((a,b) => a.id - b.id);
-
   const disabledFlats = [];
 
   sortedDocs.forEach(docSnap => {
     const data = docSnap.data();
     const tr = document.createElement("tr");
 
-    // Members details multiline
     const membersInfo = data.members.map(m => {
       const age = m.dob ? Math.floor((new Date() - new Date(m.dob)) / (365.25*24*60*60*1000)) : "";
       return `
@@ -158,7 +156,6 @@ async function loadTable() {
       <td></td>
     `;
 
-    // Actions
     const actionsTd = tr.querySelector("td:last-child");
     if (currentUser && (currentUser.email === data.createdBy || data.memberEmails.includes(currentUser.email))) {
       const editBtn = document.createElement("button");
@@ -184,7 +181,7 @@ async function loadTable() {
   populateFlatNumbers(disabledFlats);
 }
 
-// Prefill Form for Edit
+// Prefill Form
 function prefillForm(data) {
   formView.style.display = "block";
   tableView.style.display = "none";
@@ -195,19 +192,13 @@ function prefillForm(data) {
   data.members.forEach(m => addMemberPanel(m));
 }
 
-// Add Resident Button
+// Buttons
 addMemberBtn.addEventListener("click", () => addMemberPanel());
-
-// View Data Button
 viewDataBtn.addEventListener("click", loadTable);
-
-// Back Button
 backBtn.addEventListener("click", () => {
   tableView.style.display = "none";
   formView.style.display = "block";
 });
-
-// Export Button
 exportBtn.addEventListener("click", () => {
   const rows = Array.from(residentsTableBody.querySelectorAll("tr"));
   const data = rows.map(r => Array.from(r.children).slice(0,3).map(td => td.innerText));
@@ -238,9 +229,13 @@ onAuthStateChanged(auth, (user) => {
   if (user) {
     currentUser = user;
     userDetails.textContent = `Logged in as: ${currentUser.displayName || currentUser.email}`;
+    signInBtn.classList.add("hidden");
+    signOutBtn.classList.remove("hidden");
   } else {
     currentUser = null;
     userDetails.textContent = "";
+    signInBtn.classList.remove("hidden");
+    signOutBtn.classList.add("hidden");
   }
 });
 
