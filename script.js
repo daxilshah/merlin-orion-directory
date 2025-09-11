@@ -338,7 +338,7 @@ viewDataBtn.onclick = async () => {
       <th>Flat No</th>
       <th>Resident Type</th>
       <th>Members</th>
-      <th>Actions</th>
+      <th></th>
     </tr>
   `;
 
