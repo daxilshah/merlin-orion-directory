@@ -82,6 +82,24 @@ function initFlatNumbers() {
   }
 }
 
+async function disableUsedFlats() {
+  const snapshot = await getDocs(collection(db, "residents"));
+  const usedFlats = new Set();
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    if (data.flatId) {
+      usedFlats.add(data.flatId);
+    }
+  });
+
+  [...flatNumber.options].forEach((opt) => {
+    if (usedFlats.has(opt.value)) {
+      opt.disabled = true;
+      opt.textContent = `${opt.value} (Exists)`;
+    }
+  });
+}
+
 initFlatNumbers();
 
 // Resident panel creation
@@ -211,7 +229,7 @@ signOutBtn.onclick = () => {
 };
 
 // Auth state
-auth.onAuthStateChanged((user) => {
+auth.onAuthStateChanged(async (user) => {
   currentUser = user;
   console.log(user);
   if (user) {
@@ -219,6 +237,7 @@ auth.onAuthStateChanged((user) => {
     formContainer.classList.remove("hidden");
     userDetails.textContent = `Welcome, ${user.email}`;
     signOutSection.classList.remove("hidden");
+    await disableUsedFlats();
   } else {
     signinPanel.classList.remove("hidden");
     formContainer.classList.add("hidden");
@@ -341,6 +360,7 @@ async function editResident(docId, data) {
 viewDataBtn.onclick = async () => {
   formContainer.classList.add("hidden");
   dataContainer.classList.remove("hidden");
+  await disableUsedFlats();
   dataList.innerHTML = `
     <tr>
       <th>Flat No</th>
@@ -409,6 +429,7 @@ viewDataBtn.onclick = async () => {
           await deleteDoc(doc(db, "residents", resident.id));
           tr.remove();
           showToast("Record deleted successfully", "success");
+          await disableUsedFlats();
         }
       };
       actionsTd.appendChild(editBtn);
@@ -428,9 +449,10 @@ viewDataBtn.onclick = async () => {
 };
 
 // Go back
-goBackBtn.onclick = () => {
+goBackBtn.onclick = async () => {
   dataContainer.classList.add("hidden");
   formContainer.classList.remove("hidden");
+  await disableUsedFlats();
 };
 
 // Export PDF

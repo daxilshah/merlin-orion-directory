@@ -231,4 +231,11 @@ select {
   .form-container {
     margin: 1rem 0.5rem 0 0.5rem;
   }
+
+  /* Ensure date fields expand full width on mobile */
+  input[type="date"] {
+    width: 100% !important;
+    min-width: 0; /* prevents overflow */
+    box-sizing: border-box;
+  }
 }
