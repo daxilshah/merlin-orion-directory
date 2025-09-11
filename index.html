@@ -1,378 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Merlin Orion Residents Directory</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8;
-        }
-
-        .background-collage {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -10;
-            overflow: hidden;
-        }
-
-        .background-collage img,
-        .background-collage .gradient {
-            position: absolute;
-            opacity: 0.2;
-        }
-
-        .background-collage img {
-            object-fit: cover;
-        }
-
-        /* Existing image positions */
-        .image-1 { top: 0; left: 0; width: 60%; height: 70%; }
-        .image-2 { bottom: 0; right: 0; width: 50%; height: 60%; }
-        .image-3 { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50%; height: 50%; }
-
-        /* New gradient positions */
-        .gradient-top-right { top: 0; right: 0; width: 40%; height: 40%; background: linear-gradient(to bottom left, #a5b4fc, transparent); }
-        .gradient-bottom-left { bottom: 0; left: 0; width: 40%; height: 40%; background: linear-gradient(to top right, #a5b4fc, transparent); }
-
-        .form-container {
-            max-width: 900px;
-            margin: 2rem auto;
-            background-color: rgba(255, 255, 255, 0.95);
-            padding: 2.5rem;
-            border-radius: 1rem;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            position: relative;
-            z-index: 10;
-        }
-
-        .input-group { display: flex; flex-direction: column; }
-        .input-group label {
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: #4a5568;
-        }
-        .input-group input, 
-        .input-group select,
-        .input-group input[type="date"] {
-            border: 1px solid #e2e8f0;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            transition: border-color 0.2s;
-            background-color: #fff;
-            color: #1a202c;
-        }
-        .input-group input:focus, 
-        .input-group select:focus,
-        .input-group input[type="date"]:focus {
-            outline: none;
-            border-color: #4c51bf;
-            box-shadow: 0 0 0 2px rgba(76, 81, 191, 0.2);
-        }
-        input::placeholder, select option:disabled, input[type="date"]::placeholder {
-            color: #a0a0a0;
-        }
-        .placeholder-color { color: #a0a0a0 !important; }
-
-        .resident-section {
-            border: 1px solid #e2e8f0;
-            padding: 1.5rem;
-            border-radius: 0.75rem;
-            margin-bottom: 1.5rem;
-            position: relative;
-            background-color: #f9fafb;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .table-container {
-            overflow-x: auto;
-            margin-top: 2rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-        }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
-        th { background-color: #f8fafc; font-weight: 600; color: #2d3748; }
-
-        .message-box-transition {
-            transition: all 0.3s ease-in-out;
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .message-box-hidden {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-
-        /* Checkbox alignment */
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        /* X remove button */
-        .remove-btn {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            cursor: pointer;
-            color: #9ca3af;
-            transition: color 0.2s;
-        }
-        .remove-btn:hover { color: #f87171; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Merlin Orion Residents</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
-<body class="bg-gray-100 p-4 sm:p-8">
+<body>
+  <div id="authSection">
+    <h2>Login to Manage Residents</h2>
+    <button id="loginBtn">Login with Google</button>
+    <button id="logoutBtn" style="display:none;">Logout</button>
+  </div>
 
-<div class="background-collage">
-    <img src="https://housing-images.n7net.in/012c1500/de401d85f773e7949cdfc64cd6aa27ad/v0/fs.jpeg" alt="Merlin Orion building entrance" class="image-1">
-    <img src="https://housing-images.n7net.in/4f2250e8/567357597639a7fd15db7f98026bcc11/v0/fs/merlin_orion-paldi-ahmedabad-merlin_group.jpeg" alt="Merlin Orion exterior view" class="image-2">
-    <img src="https://housing-images.n7net.in/012c1500/6a7cc6d71a141d5d9cf49a58433239f3/v0/fs.jpeg" alt="Merlin Orion common area" class="image-3">
-    <div class="gradient gradient-top-right"></div>
-    <div class="gradient gradient-bottom-left"></div>
-</div>
+  <section id="formSection" style="display:none;">
+    <h2>Resident Information Form</h2>
+    <form id="residentForm">
+      <label>Flat Number* 
+        <select name="flatNo" required id="flatNoSelect"></select>
+      </label>
+      <label>Resident Type* 
+        <select name="residentType" required>
+          <option value="">Select</option>
+          <option value="Owner">Owner</option>
+          <option value="Tenant">Tenant</option>
+        </select>
+      </label>
 
-<div id="appContainer" class="form-container">
-    <div id="formView">
-        <div class="flex flex-col items-center mb-6 text-center">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">Merlin Orion Residents Directory</h1>
-            <p class="text-gray-500">Please provide the details for your flat and all residents.</p>
-        </div>
-        <form id="residentForm" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="input-group relative">
-                    <label for="flatNumber" class="text-sm text-gray-600">Flat Number <span class="text-red-500">*</span></label>
-                    <select id="flatNumber" required class="mt-1 block w-full pl-3 pr-10 py-2 bg-white border border-gray-300 rounded-md text-sm shadow-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 appearance-none">
-                        <option value="" disabled selected>Select flat number</option>
-                    </select>
-                </div>
-                <div class="input-group relative">
-                    <label for="flatStatus" class="text-sm text-gray-600">Owner or Tenant? <span class="text-red-500">*</span></label>
-                    <select id="flatStatus" required class="mt-1 block w-full pl-3 pr-10 py-2 bg-white border border-gray-300 rounded-md text-sm shadow-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 appearance-none">
-                        <option value="" disabled selected>Select status</option>
-                        <option value="Owner">Owner</option>
-                        <option value="Resident">Resident</option>
-                    </select>
-                </div>
-            </div>
+      <div id="membersContainer"></div>
 
-            <div id="residentsContainer" class="mt-8 space-y-6"></div>
+      <div class="form-actions">
+        <button type="button" id="viewDataBtn">View Submitted Data</button>
+        <button type="submit">Submit</button>
+      </div>
+    </form>
+    <button type="button" id="addMemberBtn" class="floating-btn">+ Add Member</button>
+  </section>
 
-            <div class="flex items-center justify-between mt-6">
-                <button type="button" id="showDataBtn" class="py-3 px-4 rounded-md text-sm font-semibold text-gray-800 bg-gray-200 hover:bg-gray-300 transition-colors">View Submitted Data</button>
-                <div class="flex gap-4">
-                    <button type="button" id="addResidentBtn" class="py-3 px-4 rounded-md text-sm font-semibold text-white bg-black hover:bg-gray-800 transition-colors">
-                        <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                        Add Resident
-                    </button>
-                    <button type="submit" class="py-3 px-4 rounded-md text-sm font-semibold text-white bg-black hover:bg-gray-800 transition-colors">Submit Form</button>
-                </div>
-            </div>
-        </form>
+  <section id="tableSection" style="display:none;">
+    <h2>Submitted Resident Data</h2>
+    <table id="residentsTable">
+      <thead>
+        <tr>
+          <th>Flat No.</th>
+          <th>Resident Type</th>
+          <th>Members</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="residentsTableBody"></tbody>
+    </table>
+    <div class="table-actions">
+      <button id="goBackBtn">Go Back</button>
+      <button id="exportBtn">Export PDF</button>
     </div>
+  </section>
 
-    <div id="dataView" class="hidden">
-        <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Submitted Data</h2>
-        <div class="table-container">
-            <table id="dataTable" class="min-w-full">
-                <thead>
-                    <tr>
-                        <th>Flat Number</th>
-                        <th>Status</th>
-                        <th>Residents</th>
-                        <th class="text-center">Actions</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-        <div class="flex justify-center mt-6 gap-4">
-            <button id="exportDataBtn" class="py-3 px-4 rounded-md text-sm font-semibold text-gray-800 bg-gray-200 hover:bg-gray-300 transition-colors">Export to CSV</button>
-            <button id="goBackBtn" class="py-3 px-4 rounded-md text-sm font-semibold text-gray-800 bg-gray-200 hover:bg-gray-300 transition-colors">Go Back</button>
-        </div>
-    </div>
-
-    <div id="messageBox" class="hidden mt-4 p-4 rounded-md text-sm message-box-transition" role="alert"></div>
-</div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-// Firebase config
-const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  };
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth();
-const db = getFirestore(app);
-const provider = new GoogleAuthProvider();
-
-// Ensure user is signed in
-let currentUser = null;
-// Trigger sign-in on page load
-signInWithPopup(auth, provider).catch(console.error);
-
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        isFirebaseReady = true;
-        generateFlatNumbers();
-        createResidentSection();
-        setupEventListeners();
-    } else {
-        isFirebaseReady = false;
-        console.log("User not signed in yet");
-    }
-});
-
-// Resident form logic
-const residentsContainer = document.getElementById('residentsContainer');
-const addResidentBtn = document.getElementById('addResidentBtn');
-const residentForm = document.getElementById('residentForm');
-
-const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
-const relations = ["Self","Spouse","Father","Mother","Son","Daughter","Daughter In Law","Others"];
-
-// Create resident block
-function createResidentBlock() {
-    const div = document.createElement('div');
-    div.className = 'resident-section';
-
-    div.innerHTML = `
-        <span class="remove-btn" onclick="this.parentElement.remove()">&#10005;</span>
-        <div class="grid grid-cols-1 gap-6">
-            <div class="input-group col-span-1">
-                <label>Full Name <span class="text-red-500">*</span></label>
-                <input type="text" placeholder="Enter full name" class="placeholder-color w-full resident-fullname">
-            </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-            <div class="input-group">
-                <label>Contact Number</label>
-                <input type="text" placeholder="Enter contact number" class="placeholder-color w-full resident-contact">
-            </div>
-            <div class="input-group">
-                <label>Gender</label>
-                <select class="placeholder-color w-full resident-gender">
-                    <option value="" disabled selected>Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                </select>
-            </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-            <div class="input-group checkbox-group">
-                <input type="checkbox" class="resident-primary" id="primaryContact${Date.now()}">
-                <label for="primaryContact${Date.now()}">Is this Primary Contact?</label>
-            </div>
-            <div class="input-group">
-                <label>Relation to Primary Contact</label>
-                <select class="placeholder-color w-full resident-relation">
-                    <option value="" disabled selected>Select Relation</option>
-                    ${relations.map(r => `<option value="${r}">${r}</option>`).join('')}
-                </select>
-            </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-            <div class="input-group">
-                <label>Education</label>
-                <input type="text" placeholder="Enter education" class="placeholder-color w-full resident-education">
-            </div>
-            <div class="input-group">
-                <label>Occupation</label>
-                <input type="text" placeholder="Enter occupation" class="placeholder-color w-full resident-occupation">
-            </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-            <div class="input-group">
-                <label>Blood Group</label>
-                <select class="placeholder-color w-full resident-bloodgroup">
-                    <option value="" disabled selected>Select Blood Group</option>
-                    ${bloodGroups.map(bg => `<option value="${bg}">${bg}</option>`).join('')}
-                </select>
-            </div>
-        </div>
-    `;
-    residentsContainer.appendChild(div);
-}
-
-// Add one empty resident by default
-createResidentBlock();
-addResidentBtn.addEventListener('click', createResidentBlock);
-
-// Form submit
-residentForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    if (!currentUser) {
-        alert("Please sign in to submit data.");
-        return;
-    }
-
-    const flatNumber = document.getElementById('flatNumber').value;
-    const flatStatus = document.getElementById('flatStatus').value;
-
-    if (!flatNumber || !flatStatus) {
-        alert("Please fill Flat Number and Status.");
-        return;
-    }
-
-    const residentBlocks = residentsContainer.querySelectorAll('.resident-section');
-    const residents = [];
-
-    residentBlocks.forEach(block => {
-        const resident = {
-            fullName: block.querySelector('.resident-fullname')?.value || "",
-            contactNumber: block.querySelector('.resident-contact')?.value || "",
-            gender: block.querySelector('.resident-gender')?.value || "",
-            primaryContact: block.querySelector('.resident-primary')?.checked || false,
-            relation: block.querySelector('.resident-relation')?.value || "",
-            education: block.querySelector('.resident-education')?.value || "",
-            occupation: block.querySelector('.resident-occupation')?.value || "",
-            bloodGroup: block.querySelector('.resident-bloodgroup')?.value || ""
-        };
-        residents.push(resident);
-    });
-
-    const docRef = doc(db, "residents", `${flatNumber}_${Date.now()}`);
-    try {
-        await setDoc(docRef, {
-            flatNumber,
-            flatStatus,
-            residents,
-            createdBy: currentUser.uid,
-            timestamp: serverTimestamp()
-        });
-        alert("Data submitted successfully!");
-        residentForm.reset();
-        residentsContainer.innerHTML = "";
-        createResidentBlock();
-    } catch (err) {
-        console.error(err);
-        alert("Error submitting data: " + err.message);
-    }
-});
-</script>
-
+  <script type="module" src="firebase.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
