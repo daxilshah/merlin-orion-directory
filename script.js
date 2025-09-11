@@ -1,7 +1,20 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, doc, setDoc, getDocs, query, orderBy, deleteDoc } from "firebase/firestore";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
+import {
+  getFirestore,
+  collection,
+  doc,
+  setDoc,
+  getDocs,
+  deleteDoc,
+} from "firebase/firestore";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+} from "firebase/auth";
 import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 // Firebase config
 const firebaseConfig = {
@@ -17,184 +30,417 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// DOM
-const flatSelect = document.getElementById("flat-number");
-const residentTypeSelect = document.getElementById("resident-type");
-const membersContainer = document.getElementById("members-container");
-const addMemberBtn = document.getElementById("add-member-btn");
-const submitBtn = document.getElementById("submit-btn");
-const viewDataBtn = document.getElementById("view-data-btn");
-const backBtn = document.getElementById("back-btn");
-const exportBtn = document.getElementById("export-btn");
-const signInBtn = document.getElementById("sign-in-btn");
-const signOutBtn = document.getElementById("sign-out-btn");
-const userDetailsSpan = document.getElementById("user-details");
-const formView = document.getElementById("form-view");
-const tableView = document.getElementById("table-view");
-const residentsTableBody = document.querySelector("#residents-table tbody");
+// DOM Elements
+const signinPanel = document.getElementById("signinPanel");
+const panelSignInBtn = document.getElementById("panelSignInBtn");
+const formContainer = document.getElementById("formContainer");
+const signOutBtn = document.getElementById("signOutBtn");
+const signOutSection = document.getElementById("signOutSection");
+const userDetails = document.getElementById("userDetails");
+
+const residentForm = document.getElementById("residentForm");
+const flatNumber = document.getElementById("flatNumber");
+const residentType = document.getElementById("residentType");
+const residentsContainer = document.getElementById("residentsContainer");
+const addResidentBtn = document.getElementById("addResidentBtn");
+const viewDataBtn = document.getElementById("viewDataBtn");
+const dataContainer = document.getElementById("dataContainer");
+const dataList = document.getElementById("dataList");
+const goBackBtn = document.getElementById("goBackBtn");
+const exportBtn = document.getElementById("exportBtn");
 
 let currentUser = null;
-let editingFlatId = null;
 
-// Populate Flats
-function populateFlats() {
-  flatSelect.innerHTML = '<option value="" disabled selected>Select Flat Number</option>';
-  for (let floor=1; floor<=14; floor++){
-    for(let f=1; f<=4; f++){
-      let flatNo = `${floor}0${f}`;
-      flatSelect.innerHTML += `<option value="${flatNo}">${flatNo}</option>`;
+// Toast function
+function showToast(message, type = "success", duration = 3000) {
+  const container = document.getElementById("toastContainer");
+  const toast = document.createElement("div");
+  toast.className = `px-4 py-2 rounded shadow text-white ${
+    type === "error" ? "bg-red-500" : "bg-green-500"
+  }`;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add("opacity-0", "transition", "duration-500");
+    setTimeout(() => toast.remove(), 500);
+  }, duration);
+}
+
+// Initialize flat numbers
+function initFlatNumbers() {
+  flatNumber.innerHTML =
+    '<option value="" disabled selected>Select Flat Number</option>';
+  for (let floor = 1; floor <= 14; floor++) {
+    for (let f = 1; f <= 4; f++) {
+      const num = `${floor}${f.toString().padStart(2, "0")}`;
+      const option = document.createElement("option");
+      option.value = num;
+      option.textContent = num;
+      flatNumber.appendChild(option);
     }
   }
 }
-populateFlats();
 
-// Add Member Panel
-function createMemberPanel(data={}) {
+initFlatNumbers();
+
+// Resident panel creation
+function createResidentPanel(data = {}) {
   const panel = document.createElement("div");
-  panel.className = "resident-section";
-  panel.innerHTML = `
-    <button type="button" class="remove-member-btn">✕</button>
-    <div class="row">
-      <div class="col input-group"><label>Full Name</label><input placeholder="Full Name" value="${data.fullName||''}" required/></div>
-      <div class="col input-group"><label>Gender</label><select required>
-        <option value="" disabled ${!data.gender?"selected":""}>Select Gender</option>
-        <option value="Male" ${data.gender==="Male"?"selected":""}>Male</option>
-        <option value="Female" ${data.gender==="Female"?"selected":""}>Female</option>
-      </select></div>
-    </div>
-    <div class="row">
-      <div class="col input-group"><label>Contact Number</label><input placeholder="Contact Number" value="${data.contact||''}"/></div>
-      <div class="col input-group"><label>Email</label><input type="email" placeholder="Email" value="${data.email||''}"/></div>
-    </div>
-    <div class="row">
-      <div class="col input-group"><label>Date of Birth</label><input type="date" value="${data.dob||''}"/></div>
-      <div class="col input-group"><label>Relation to Primary Contact</label><select>
-        <option value="" disabled ${!data.relation?"selected":""}>Select Relation</option>
-        <option value="Self" ${data.relation==="Self"?"selected":""}>Self</option>
-        <option value="Spouse" ${data.relation==="Spouse"?"selected":""}>Spouse</option>
-        <option value="Father" ${data.relation==="Father"?"selected":""}>Father</option>
-        <option value="Mother" ${data.relation==="Mother"?"selected":""}>Mother</option>
-        <option value="Son" ${data.relation==="Son"?"selected":""}>Son</option>
-        <option value="Daughter" ${data.relation==="Daughter"?"selected":""}>Daughter</option>
-        <option value="Daughter In Law" ${data.relation==="Daughter In Law"?"selected":""}>Daughter In Law</option>
-        <option value="Other" ${data.relation==="Other"?"selected":""}>Other</option>
-      </select></div>
-    </div>
-    <div class="row">
-      <div class="col input-group"><label>Blood Group</label><select>
-        <option value="" disabled ${!data.bloodGroup?"selected":""}>Select Blood Group</option>
-        <option value="A+">A+</option><option value="A-">A-</option>
-        <option value="B+">B+</option><option value="B-">B-</option>
-        <option value="O+">O+</option><option value="O-">O-</option>
-        <option value="AB+">AB+</option><option value="AB-">AB-</option>
-      </select></div>
-      <div class="col input-group"><label>Education</label><input placeholder="Education" value="${data.education||''}"/></div>
-    </div>
-    <div class="row">
-      <div class="col input-group"><label>Occupation</label><input placeholder="Occupation" value="${data.occupation||''}"/></div>
-      <div class="col input-group"><label>City (Applicable for NRIs)</label><input placeholder="City" value="${data.city||''}"/></div>
-    </div>
-  `;
-  panel.querySelector(".remove-member-btn").addEventListener("click", ()=>panel.remove());
-  membersContainer.appendChild(panel);
+  panel.classList.add("resident-panel");
+
+  const removeBtn = document.createElement("button");
+  removeBtn.className = "remove-btn text-red-500 mr-2";
+  removeBtn.innerText = "X";
+  removeBtn.onclick = () => panel.remove();
+  panel.appendChild(removeBtn);
+
+  const fields = [
+    ["Full Name", "fullName", "text", null, "Enter Full Name"],
+    ["Gender", "gender", "select", ["Male", "Female"], "Select Gender"],
+    ["Contact Number", "contact", "text", null, "Enter Contact Number"],
+    ["Email", "email", "email", null, "Enter Email Address"],
+    ["Date of Birth", "dob", "date", null, "dd/mm/yyyy"],
+    [
+      "Relation to Primary Contact",
+      "relation",
+      "select",
+      [
+        "Self",
+        "Spouse",
+        "Father",
+        "Mother",
+        "Son",
+        "Daughter",
+        "Daughter In Law",
+        "Other",
+      ],
+      "Select Relation",
+    ],
+    [
+      "Blood Group",
+      "bloodGroup",
+      "select",
+      ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
+      "Select Blood Group",
+    ],
+    [
+      "Education",
+      "education",
+      "text",
+      null,
+      "Enter Education (e.g., B.Sc, MBA)",
+    ],
+    [
+      "Occupation",
+      "occupation",
+      "text",
+      null,
+      "Enter Occupation (e.g., Engineer, Teacher)",
+    ],
+    [
+      "City (Applicable for NRIs)",
+      "city",
+      "text",
+      null,
+      "Enter City (e.g., London, New York)",
+    ],
+  ];
+
+  const mandatoryFields = ["fullName", "gender", "relation"];
+
+  for (let i = 0; i < fields.length; i += 2) {
+    const row = document.createElement("div");
+    row.classList.add("form-row");
+    for (let j = 0; j < 2; j++) {
+      if (i + j >= fields.length) break;
+      const [labelText, id, type, options, placeholder] = fields[i + j];
+      const group = document.createElement("div");
+      group.classList.add("form-group");
+      const label = document.createElement("label");
+      label.textContent = labelText;
+      if (mandatoryFields.includes(id)) {
+        const star = document.createElement("span");
+        star.textContent = " *";
+        star.classList.add("text-red-500");
+        label.appendChild(star);
+      }
+      let input;
+      if (type === "select") {
+        input = document.createElement("select");
+        if (placeholder) {
+          const ph = document.createElement("option");
+          ph.textContent = placeholder;
+          ph.disabled = true;
+          ph.selected = !data[id];
+          input.appendChild(ph);
+        }
+        options.forEach((opt) => {
+          const o = document.createElement("option");
+          o.value = o.textContent = opt;
+          input.appendChild(o);
+        });
+        if (data[id]) input.value = data[id];
+      } else {
+        input = document.createElement("input");
+        input.type = type;
+        input.value = data[id] || "";
+        input.placeholder = placeholder || labelText;
+      }
+      input.required = mandatoryFields.includes(id);
+      input.id = id;
+      group.appendChild(label);
+      group.appendChild(input);
+      row.appendChild(group);
+    }
+    panel.appendChild(row);
+  }
+  residentsContainer.appendChild(panel);
 }
 
-addMemberBtn.addEventListener("click", ()=>createMemberPanel());
-
 // Auth
-signInBtn.addEventListener("click", ()=>signInWithPopup(auth,provider));
-signOutBtn.addEventListener("click", ()=>signOut(auth));
-onAuthStateChanged(auth,user=>{
+panelSignInBtn.onclick = () => {
+  signInWithPopup(auth, provider);
+};
+signOutBtn.onclick = () => {
+  signOut(auth);
+};
+
+// Auth state
+auth.onAuthStateChanged((user) => {
   currentUser = user;
-  if(user){
-    signInBtn.classList.add("hidden");
-    signOutBtn.classList.remove("hidden");
-    userDetailsSpan.textContent = `Logged in as: ${user.email}`;
-  }else{
-    signInBtn.classList.remove("hidden");
-    signOutBtn.classList.add("hidden");
-    userDetailsSpan.textContent="";
+  console.log(user);
+  if (user) {
+    signinPanel.classList.add("hidden");
+    formContainer.classList.remove("hidden");
+    userDetails.textContent = `Logged in as: ${user.email}`;
+    signOutSection.classList.remove("hidden");
+  } else {
+    signinPanel.classList.remove("hidden");
+    formContainer.classList.add("hidden");
+    signOutSection.classList.add("hidden");
   }
 });
+addResidentBtn.onclick = () => createResidentPanel();
 
-// Submit
-submitBtn.addEventListener("click", async ()=>{
-  const flatNo = flatSelect.value;
-  const residentType = residentTypeSelect.value;
-  if(!flatNo || !residentType) return alert("Flat Number & Resident Type required");
+// Form submit
+residentForm.onsubmit = async (e) => {
+  e.preventDefault();
+  if (!flatNumber.value || !residentType.value) {
+    showToast("Please select Flat Number and Resident Type", "error");
+    return;
+  }
+  const members = [];
+  document.querySelectorAll(".resident-panel").forEach((panel) => {
+    const member = {};
+    panel.querySelectorAll("input,select").forEach((inp) => {
+      member[inp.id] = inp.value;
+    });
+    members.push(member);
+  });
+  if (members.length === 0) {
+    showToast("Please add at least one resident", "error");
+    return;
+  }
 
-  const members = Array.from(membersContainer.children).map(panel=>{
-    return {
-      fullName: panel.querySelector("input[placeholder='Full Name']").value,
-      gender: panel.querySelector("select").value,
-      contact: panel.querySelector("input[placeholder='Contact Number']").value,
-      email: panel.querySelector("input[placeholder='Email']").value,
-      dob: panel.querySelector("input[type='date']").value,
-      relation: panel.querySelectorAll("select")[1].value,
-      bloodGroup: panel.querySelectorAll("select")[2].value,
-      education: panel.querySelectorAll("input")[2].value,
-      occupation: panel.querySelectorAll("input")[3].value,
-      city: panel.querySelectorAll("input")[4].value
-    };
+  const memberEmails = members.map((m) => m.email).filter(Boolean);
+  const docRef = doc(db, "residents", flatNumber.value);
+  await setDoc(docRef, {
+    flatId: flatNumber.value,
+    residentType: residentType.value,
+    members,
+    memberEmails,
+    createdBy: currentUser.email,
+  });
+  showToast("Saved successfully!");
+  residentForm.reset();
+  residentsContainer.innerHTML = "";
+};
+
+function calculateAge(dobStr) {
+  if (!dobStr) return "N/A";
+  const birthDate = new Date(dobStr);
+  if (isNaN(birthDate)) return "N/A";
+
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age + " Years";
+}
+
+async function editResident(docId, data) {
+  // Hide data table and show form
+  dataContainer.classList.add("hidden");
+  formContainer.classList.remove("hidden");
+
+  // Reset form
+  residentForm.reset();
+  residentsContainer.innerHTML = "";
+
+  // Set Flat Number and Resident Type
+  flatNumber.value = data.flatId;
+  residentType.value = data.residentType;
+
+  // Add resident panels for each member
+  data.members.forEach(member => {
+    createResidentPanel(member);
   });
 
-  const memberEmails = members.map(m=>m.email).filter(e=>e);
-  const docData = { flatNo,residentType,members,memberEmails,createdBy:currentUser?.email||null };
-  await setDoc(doc(db,"residents",flatNo),docData);
-  alert("Data saved");
-});
+  // Override form submit temporarily to update existing record
+  const originalSubmit = residentForm.onsubmit;
+  residentForm.onsubmit = async e => {
+    e.preventDefault();
+    const members = [];
+    document.querySelectorAll(".resident-panel").forEach(panel => {
+      const member = {};
+      panel.querySelectorAll("input, select").forEach(inp => {
+        member[inp.id] = inp.value;
+      });
+      members.push(member);
+    });
 
-// View Submitted Data
-viewDataBtn.addEventListener("click", async ()=>{
-  formView.style.display="none";
-  tableView.style.display="block";
-  residentsTableBody.innerHTML="";
-  const snap = await getDocs(query(collection(db,"residents"),orderBy("flatNo")));
-  snap.forEach(docSnap=>{
-    const data = docSnap.data();
+    if(members.length === 0){
+      showToast("Please add at least one resident","error");
+      return;
+    }
+
+    const memberEmails = members.map(m => m.email).filter(Boolean);
+    await setDoc(doc(db, "residents", docId), {
+      flatId: flatNumber.value,
+      residentType: residentType.value,
+      members,
+      memberEmails,
+      createdBy: auth.currentUser.email
+    });
+
+    showToast("Resident record updated successfully", "success");
+    residentForm.reset();
+    residentsContainer.innerHTML = "";
+    
+    // Restore original submit handler
+    residentForm.onsubmit = originalSubmit;
+
+    // Return to data view
+    formContainer.classList.add("hidden");
+    dataContainer.classList.remove("hidden");
+    viewDataBtn.onclick(); // Refresh table
+  };
+}
+
+// View Data
+viewDataBtn.onclick = async () => {
+  formContainer.classList.add("hidden");
+  dataContainer.classList.remove("hidden");
+  dataList.innerHTML = `
+    <tr>
+      <th>Flat No</th>
+      <th>Resident Type</th>
+      <th>Members</th>
+      <th>Actions</th>
+    </tr>
+  `;
+
+  const snapshot = await getDocs(collection(db, "residents"));
+  const residentsArray = snapshot.docs.map((docSnap) => ({
+    id: docSnap.id,
+    data: docSnap.data(),
+  }));
+  residentsArray.sort(
+    (a, b) => parseInt(a.data.flatId) - parseInt(b.data.flatId)
+  );
+
+  residentsArray.forEach((resident) => {
+    const data = resident.data;
     const tr = document.createElement("tr");
-    const memberInfo = data.members.map(m=>{
-      const age = m.dob ? Math.floor((new Date() - new Date(m.dob))/31556952000) : "";
-      return `${m.fullName} (${m.relation}, ${m.gender}${age?`, Age: ${age}`:""})\nContact: ${m.contact || "-"}\nEmail: ${m.email || "-"}\nBlood: ${m.bloodGroup || "-"}, Education: ${m.education || "-"}, Occupation: ${m.occupation || "-"}, City: ${m.city || "-"}`;
-    }).join("\n\n");
-    tr.innerHTML=`<td>${data.flatNo}</td><td>${data.residentType}</td><td>${memberInfo}</td>
-      <td>
-        ${currentUser&&(currentUser.email===data.createdBy || data.memberEmails.includes(currentUser.email)) ? '<button class="edit-btn btn-black">Edit</button> <button class="delete-btn btn-black">Delete</button>':""}
-      </td>`;
-    // Edit
-    tr.querySelector(".edit-btn")?.addEventListener("click", ()=>{
-      formView.style.display="block";
-      tableView.style.display="none";
-      flatSelect.value = data.flatNo;
-      residentTypeSelect.value = data.residentType;
-      membersContainer.innerHTML="";
-      data.members.forEach(m=>createMemberPanel(m));
-      editingFlatId = data.flatNo;
-    });
-    // Delete
-    tr.querySelector(".delete-btn")?.addEventListener("click", async ()=>{
-      if(confirm("Delete this record?")){
-        await deleteDoc(doc(db,"residents",data.flatNo));
-        tr.remove();
-      }
-    });
-    residentsTableBody.appendChild(tr);
+    const memberInfo = data.members
+      .map((m) => {
+        return `Name: ${m.fullName}\nGender: ${m.gender}\nContact No: ${
+          m.contact
+        }\nEmail: ${m.email}\nAge: ${calculateAge(m.dob)} (DOB: ${
+          m.dob
+        })\nRelation: ${m.relation}\nBlood Group: ${m.bloodGroup}\nEducation: ${
+          m.education
+        }\nOccupation: ${m.occupation}\nCity (If NRIs): ${m.city}`;
+      })
+      .join("\n\n");
+
+    const actionsTd = document.createElement("td");
+    const currentUserEmail = auth.currentUser?.email;
+    const canEditOrDelete =
+      data.createdBy === currentUserEmail ||
+      (data.memberEmails && data.memberEmails.includes(currentUserEmail));
+    if (canEditOrDelete) {
+      const editBtn = document.createElement("button");
+      editBtn.textContent = "Edit";
+      editBtn.classList.add(
+        "px-4",
+        "py-2",
+        "bg-gray-200",
+        "text-black",
+        "rounded",
+        "mr-2"
+      );
+      editBtn.onclick = () => editResident(resident.id, data);
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "Delete";
+      deleteBtn.classList.add(
+        "px-4",
+        "py-2",
+        "bg-gray-200",
+        "text-black",
+        "rounded"
+      );
+      deleteBtn.onclick = async () => {
+        if (confirm("Are you sure you want to delete this record?")) {
+          await deleteDoc(doc(db, "residents", resident.id));
+          tr.remove();
+          showToast("Record deleted successfully", "success");
+        }
+      };
+      actionsTd.appendChild(editBtn);
+      actionsTd.appendChild(deleteBtn);
+    }
+
+    tr.innerHTML = `
+      <td>${data.flatId}</td>
+      <td>${data.residentType}</td>
+      <td><pre>${memberInfo}</pre></td>
+    `;
+    tr.appendChild(actionsTd);
+
+    dataList.appendChild(tr);
   });
-});
+};
 
-// Go Back
-backBtn.addEventListener("click",()=>{
-  formView.style.display="block";
-  tableView.style.display="none";
-});
+// Go back
+goBackBtn.onclick = () => {
+  dataContainer.classList.add("hidden");
+  formContainer.classList.remove("hidden");
+};
 
-// Export
-exportBtn.addEventListener("click",()=>{
+// Export PDF
+exportBtn.onclick = () => {
   const doc = new jsPDF();
-  const rows = [];
-  document.querySelectorAll("#residents-table tbody tr").forEach(tr=>{
-    rows.push([tr.children[0].innerText,tr.children[1].innerText,tr.children[2].innerText.replace(/\n/g," | ")]);
+  doc.setFontSize(16);
+  doc.text("Merlin Orion Residents Directory", 14, 20);
+  const tableRows = [];
+  const rows = dataList.querySelectorAll("tr");
+  rows.forEach((row, index) => {
+    const cols = Array.from(row.querySelectorAll("td, th"));
+    const rowData = cols.slice(0, 3).map((td) => td.innerText.trim());
+    tableRows.push(rowData);
   });
-  doc.autoTable({head:[["Flat No.","Resident Type","Members Info"]],body:rows});
-  doc.save("residents.pdf");
-});
+  const headers = tableRows.shift();
+  autoTable(doc, {
+    head: [headers],
+    body: tableRows,
+    startY: 30,
+    theme: "grid",
+    styles: { fontSize: 10, cellWidth: "wrap" },
+    headStyles: { fillColor: [100, 100, 100] },
+  });
+  doc.save("MerlinOrionResidents.pdf");
+};

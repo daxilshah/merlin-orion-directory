@@ -5,77 +5,147 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Merlin Orion Residents Directory</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <!-- Background Collage -->
+    <!-- Background collage -->
     <div class="background-collage">
-      <img src="https://housing-images.n7net.in/012c1500/de401d85f773e7949cdfc64cd6aa27ad/v0/fs.jpeg" class="image-1" alt="Merlin Orion Top Left"/>
-      <img src="https://housing-images.n7net.in/4f2250e8/567357597639a7fd15db7f98026bcc11/v0/fs/merlin_orion-paldi-ahmedabad-merlin_group.jpeg" class="image-2" alt="Merlin Orion Bottom Right"/>
+      <img
+        src="https://housing-images.n7net.in/012c1500/de401d85f773e7949cdfc64cd6aa27ad/v0/fs.jpeg"
+        class="image-1"
+      />
+      <img
+        src="https://housing-images.n7net.in/4f2250e8/567357597639a7fd15db7f98026bcc11/v0/fs/merlin_orion-paldi-ahmedabad-merlin_group.jpeg"
+        class="image-2"
+      />
       <div class="gradient-top-right"></div>
       <div class="gradient-bottom-left"></div>
     </div>
 
-    <!-- Auth Buttons Top Right -->
-    <div class="auth absolute top-4 right-4 flex items-center gap-2">
-      <button id="sign-in-btn" class="btn-black">Sign In</button>
-      <button id="sign-out-btn" class="btn-black hidden">Sign Out</button>
-      <span id="user-details" class="text-gray-700"></span>
+    <!-- Top-right user info and sign out -->
+    <div
+      class="fixed top-4 right-4 flex items-center gap-4 z-20 hidden"
+      id="signOutSection"
+    >
+      <span id="userDetails" class="text-gray-700"></span>
+      <button id="signOutBtn" class="px-4 py-2 bg-black text-white rounded">
+        Sign Out
+      </button>
     </div>
 
-    <!-- Form View -->
-    <div id="form-view" class="form-container">
-      <!-- Flat Number & Resident Type -->
-      <div class="row">
-        <div class="col input-group">
-          <label for="flat-number">Flat Number</label>
-          <select id="flat-number">
-            <option value="" disabled selected>Select Flat Number</option>
-          </select>
+    <!-- Sign in panel -->
+    <div id="signinPanel" class="flex justify-center items-center min-h-screen">
+      <div class="signin-box p-6 rounded-lg shadow-lg bg-white text-center">
+        <h1 class="text-2xl font-bold mb-6 text-center">
+          Merlin Orion Residents Directory
+        </h1>
+        <p class="mb-4 font-semibold">Please sign in to continue</p>
+        <button
+          id="panelSignInBtn"
+          class="px-6 py-2 bg-black text-white rounded flex items-center justify-center gap-2"
+        >
+          <svg class="w-5 h-5" viewBox="0 0 533.5 544.3">
+            <path
+              fill="#4285F4"
+              d="M533.5 278.4c0-18.2-1.6-35.6-4.6-52.6H272v99.5h146.9c-6.3 33.7-25.2 62.4-53.7 81.7v67.9h86.6c50.6-46.6 79.7-115.3 79.7-196.5z"
+            />
+            <path
+              fill="#34A853"
+              d="M272 544.3c72.9 0 134.1-24.2 178.8-65.9l-86.6-67.9c-24.1 16.2-55 25.8-92.2 25.8-70.9 0-131-47.8-152.4-112.1H30.2v70.5C74.7 485.8 167.1 544.3 272 544.3z"
+            />
+            <path
+              fill="#FBBC05"
+              d="M119.6 323.6c-5.1-15.4-8-31.8-8-48.6s2.9-33.2 8-48.6V155.9H30.2c-17.7 35.4-28 74.8-28 116s10.3 80.6 28 116l89.4-64.3z"
+            />
+            <path
+              fill="#EA4335"
+              d="M272 107.7c38.3 0 72.7 13.2 99.7 39.2l74.7-74.7C406.1 29.5 344.9 5.3 272 5.3 167.1 5.3 74.7 63.8 30.2 155.9l89.4 70.5c21.4-64.3 81.5-112.1 152.4-112.1z"
+            />
+          </svg>
+          Sign in with Google
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Form Container -->
+    <div id="formContainer" class="hidden form-container">
+      <h1 class="text-2xl font-bold mb-6 text-center">
+        Merlin Orion Residents Directory
+      </h1>
+      <form id="residentForm" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="input-group">
+            <label for="flatNumber"
+              >Flat Number <span class="text-red-500">*</span></label
+            >
+            <select id="flatNumber" required>
+              <option value="" disabled selected>Select Flat Number</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label for="residentType"
+              >Resident Type <span class="text-red-500">*</span></label
+            >
+            <select id="residentType" required>
+              <option value="" disabled selected>Select Resident Type</option>
+              <option value="Owner">Owner</option>
+              <option value="Tenant">Tenant</option>
+            </select>
+          </div>
         </div>
-        <div class="col input-group">
-          <label for="resident-type">Resident Type</label>
-          <select id="resident-type">
-            <option value="" disabled selected>Select Resident Type</option>
-            <option value="Owner">Owner</option>
-            <option value="Tenant">Tenant</option>
-          </select>
+
+        <div id="residentsContainer"></div>
+
+        <button
+          type="button"
+          id="addResidentBtn"
+          class="w-full px-4 py-2 bg-black text-white rounded mb-4 flex items-center justify-center gap-2"
+        >
+          + Add Resident
+        </button>
+
+        <div class="flex justify-between gap-4">
+          <button
+            type="button"
+            id="viewDataBtn"
+            class="px-4 py-2 bg-gray-200 text-black rounded"
+          >
+            View Submitted Data
+          </button>
+          <button type="submit" class="px-4 py-2 bg-black text-white rounded">
+            Submit
+          </button>
         </div>
+      </form>
+    </div>
+
+    <!-- Data Table Container -->
+    <div
+      id="dataContainer"
+      class="hidden max-w-5xl mx-auto mt-8 form-container"
+    >
+      <h1 class="text-2xl font-bold mb-6 text-center">
+        Merlin Orion Residents Directory
+      </h1>
+      <div class="overflow-x-auto border rounded">
+        <table id="dataList" class="min-w-full text-left"></table>
       </div>
-
-      <!-- Members -->
-      <div id="members-container"></div>
-
-      <!-- Add Resident Button -->
-      <button id="add-member-btn" class="w-full btn-black my-2">+ Add Resident</button>
-
-      <!-- Submit / View Data Buttons -->
-      <div class="btn-group flex justify-between">
-        <button id="submit-btn" class="btn-black">Submit</button>
-        <button id="view-data-btn" class="btn-gray">View Submitted Data</button>
+      <div class="flex justify-between mt-4 gap-4">
+        <button id="goBackBtn" class="px-4 py-2 bg-gray-200 text-black rounded">
+          Go Back
+        </button>
+        <button id="exportBtn" class="px-4 py-2 bg-black text-white rounded">
+          Export
+        </button>
       </div>
     </div>
 
-    <!-- Table View -->
-    <div id="table-view" class="form-container hidden">
-      <div class="table-container">
-        <table id="residents-table">
-          <thead>
-            <tr>
-              <th>Flat No.</th>
-              <th>Resident Type</th>
-              <th>Members Info</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <div class="btn-group flex justify-between mt-4">
-        <button id="back-btn" class="btn-gray">Go Back</button>
-        <button id="export-btn" class="btn-black">Export</button>
-      </div>
-    </div>
+    <!-- Toast container -->
+    <div
+      id="toastContainer"
+      class="fixed top-4 right-4 flex flex-col gap-2 z-50"
+    ></div>
 
     <script type="module" src="script.js"></script>
   </body>
