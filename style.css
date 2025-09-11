@@ -1,213 +1,98 @@
-/* Global reset and font */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
 body {
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to bottom right, #f5f5f5, #e0e0e0);
   padding: 20px;
-  color: #333;
-  background: linear-gradient(to bottom right, #f8f9fa, #e9ecef);
+  margin: 0;
 }
 
-/* Background collage */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: 
-    url('https://housing-images.n7net.in/012c1500/de401d85f773e7949cdfc64cd6aa27ad/v0/fs.jpeg') top left no-repeat,
-    url('https://housing-images.n7net.in/4f2250e8/567357597639a7fd15db7f98026bcc11/v0/fs/merlin_orion-paldi-ahmedabad-merlin_group.jpeg') bottom right no-repeat;
-  background-size: 40% auto, 40% auto;
-  opacity: 0.15;
-  z-index: -1;
-  pointer-events: none;
-}
-
-/* Auth section - Top Right */
+/* Auth section top-right */
 .auth {
-  width: 90%;
-  max-width: 900px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-bottom: 20px;
   position: fixed;
   top: 10px;
   right: 10px;
-  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-#user-details {
-  align-self: center;
-  font-weight: 500;
+/* Hide buttons by default */
+.auth button.hidden {
+  display: none;
 }
 
-/* Form container */
+/* Form and table view styling */
 #form-view, #table-view {
-  width: 90%;
   max-width: 900px;
-  background: rgba(255, 255, 255, 0.95);
-  padding: 25px 30px;
+  margin: 80px auto 0 auto;
+  background: rgba(255,255,255,0.9);
+  padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-  margin-bottom: 30px;
+  box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
 }
 
-/* Headings */
-h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  font-weight: 600;
-  color: #1c1c1c;
-}
-
-/* Row flex */
+/* Rows and columns */
 .row {
   display: flex;
-  gap: 15px;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
-.row .col {
+.col {
   flex: 1;
-}
-
-/* Labels & Inputs */
-label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 500;
-}
-
-input[type="text"],
-input[type="email"],
-input[type="date"],
-select {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 14px;
-  outline: none;
-  transition: border 0.2s ease;
-}
-
-input:focus,
-select:focus {
-  border-color: #000;
-}
-
-/* Resident Panel */
-.member-block {
-  position: relative;
-  border: 1px solid #e0e0e0;
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 15px;
-  background: #fafafa;
-}
-
-/* X icon remove button */
-.member-block .remove-member-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: transparent;
-  border: none;
-  font-weight: bold;
-  font-size: 18px;
-  cursor: pointer;
-  color: #ff4d4f;
-}
-
-/* Actions buttons container */
-.actions {
   display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
+  flex-direction: column;
 }
 
 /* Buttons */
 button {
-  cursor: pointer;
+  padding: 10px 20px;
   border: none;
-  border-radius: 8px;
-  padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  cursor: pointer;
+  border-radius: 6px;
+  margin-top: 10px;
 }
 
 /* Black buttons */
-#submit-btn,
-#add-member-btn,
-#export-btn,
-#sign-in-btn,
-#sign-out-btn {
-  background: #000;
+#add-member-btn, #submit-btn, #export-btn, #sign-in-btn, #sign-out-btn {
+  background-color: #000;
   color: #fff;
-}
-
-#submit-btn:hover,
-#add-member-btn:hover,
-#export-btn:hover,
-#sign-in-btn:hover,
-#sign-out-btn:hover {
-  background: #333;
 }
 
 /* Gray buttons */
-#view-data-btn,
-#back-btn {
-  background: #6c757d;
-  color: #fff;
+#view-data-btn, #back-btn {
+  background-color: #e5e7eb; /* bg-gray-200 */
+  color: #000;
 }
 
-#view-data-btn:hover,
-#back-btn:hover {
-  background: #5a6268;
+/* Member block panel */
+.member-block {
+  border: 1px solid #ccc;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  position: relative;
+  background: #fafafa;
 }
 
-/* Table styling */
-table {
+/* Remove member button */
+.member-block .remove-member-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 22px;
+  font-weight: normal;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #333;
+}
+
+/* Members container spacing */
+#members-container {
+  margin-top: 20px;
+}
+
+/* Full width Add Resident */
+#add-member-btn {
   width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
-}
-
-table th, table td {
-  padding: 12px 10px;
-  text-align: left;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-table th {
-  background: #f5f5f5;
-  font-weight: 600;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  #form-view, #table-view {
-    padding: 20px;
-  }
-
-  .row {
-    flex-direction: column;
-  }
-
-  .actions {
-    flex-direction: column-reverse;
-    gap: 10px;
-  }
 }
