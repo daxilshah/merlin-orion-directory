@@ -11,16 +11,46 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: 
-    linear-gradient(to bottom right, rgba(255,255,255,0.8), rgba(245,245,245,0.8)),
-    url('https://housing-images.n7net.in/012c1500/de401d85f773e7949cdfc64cd6aa27ad/v0/fs.jpeg') no-repeat top left,
-    url('https://housing-images.n7net.in/4f2250e8/567357597639a7fd15db7f98026bcc11/v0/fs/merlin_orion-paldi-ahmedabad-merlin_group.jpeg') no-repeat bottom right;
-  background-size: 40% auto, 40% auto;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  background-blend-mode: overlay;
+  position: relative;
   padding: 20px;
   color: #333;
+  background: linear-gradient(to bottom right, #f8f9fa, #e9ecef);
+}
+
+/* Background collage */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    url('https://housing-images.n7net.in/012c1500/de401d85f773e7949cdfc64cd6aa27ad/v0/fs.jpeg') top left no-repeat,
+    url('https://housing-images.n7net.in/4f2250e8/567357597639a7fd15db7f98026bcc11/v0/fs/merlin_orion-paldi-ahmedabad-merlin_group.jpeg') bottom right no-repeat;
+  background-size: 40% auto, 40% auto;
+  opacity: 0.15;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Auth section - Top Right */
+.auth {
+  width: 90%;
+  max-width: 900px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 20px;
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+}
+
+#user-details {
+  align-self: center;
+  font-weight: 500;
 }
 
 /* Form container */
@@ -42,10 +72,19 @@ h2 {
   color: #1c1c1c;
 }
 
+/* Row flex */
+.row {
+  display: flex;
+  gap: 15px;
+}
+
+.row .col {
+  flex: 1;
+}
+
 /* Labels & Inputs */
 label {
   display: block;
-  margin-top: 15px;
   margin-bottom: 5px;
   font-weight: 500;
 }
@@ -65,11 +104,12 @@ select {
 
 input:focus,
 select:focus {
-  border-color: #007BFF;
+  border-color: #000;
 }
 
-/* Member block */
+/* Resident Panel */
 .member-block {
+  position: relative;
   border: 1px solid #e0e0e0;
   padding: 15px;
   border-radius: 10px;
@@ -77,20 +117,17 @@ select:focus {
   background: #fafafa;
 }
 
-/* Remove member button */
-.remove-member-btn {
-  margin-top: 10px;
-  background: #ff4d4f;
-  color: white;
+/* X icon remove button */
+.member-block .remove-member-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
   border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
+  font-weight: bold;
+  font-size: 18px;
   cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.remove-member-btn:hover {
-  background: #e03a3f;
+  color: #ff4d4f;
 }
 
 /* Actions buttons container */
@@ -111,29 +148,33 @@ button {
   transition: all 0.2s ease;
 }
 
-/* Primary button */
-#submit-btn {
-  background: #007BFF;
-  color: white;
-}
-
-#submit-btn:hover {
-  background: #0056b3;
-}
-
-/* Secondary button */
-#view-data-btn,
-#back-btn,
+/* Black buttons */
+#submit-btn,
+#add-member-btn,
 #export-btn,
-#add-member-btn {
+#sign-in-btn,
+#sign-out-btn {
+  background: #000;
+  color: #fff;
+}
+
+#submit-btn:hover,
+#add-member-btn:hover,
+#export-btn:hover,
+#sign-in-btn:hover,
+#sign-out-btn:hover {
+  background: #333;
+}
+
+/* Gray buttons */
+#view-data-btn,
+#back-btn {
   background: #6c757d;
-  color: white;
+  color: #fff;
 }
 
 #view-data-btn:hover,
-#back-btn:hover,
-#export-btn:hover,
-#add-member-btn:hover {
+#back-btn:hover {
   background: #5a6268;
 }
 
@@ -155,26 +196,14 @@ table th {
   font-weight: 600;
 }
 
-/* Auth section */
-.auth {
-  width: 90%;
-  max-width: 900px;
-  margin-bottom: 30px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-#user-details {
-  margin-left: auto;
-  align-self: center;
-  font-weight: 500;
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
   #form-view, #table-view {
     padding: 20px;
+  }
+
+  .row {
+    flex-direction: column;
   }
 
   .actions {
