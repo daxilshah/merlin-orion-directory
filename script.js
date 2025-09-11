@@ -45,7 +45,7 @@ function populateFlatNumbers() {
     const optGroup = document.createElement("optgroup");
     optGroup.label = `Floor ${floor}`;
     for (let flat = 1; flat <= 4; flat++) {
-      const flatNo = `${floor}${flat}`;
+      const flatNo = `${floor}${flat.toString().padStart(2, "0")}`;
       const option = document.createElement("option");
       option.value = flatNo;
       option.textContent = flatNo;
