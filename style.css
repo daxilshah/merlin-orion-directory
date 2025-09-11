@@ -1,8 +1,14 @@
 body {
   font-family: Arial, sans-serif;
-  background: linear-gradient(to bottom right, #f5f5f5, #e0e0e0);
-  padding: 20px;
+  min-height: 100vh;
   margin: 0;
+  padding: 20px;
+  background: 
+    linear-gradient(to bottom right, rgba(245,245,245,0.95), rgba(224,224,224,0.95)),
+    url('https://housing-images.n7net.in/012c1500/de401d85f773e7949cdfc64cd6aa27ad/v0/fs.jpeg') top left no-repeat,
+    url('https://housing-images.n7net.in/4f2250e8/567357597639a7fd15db7f98026bcc11/v0/fs/merlin_orion-paldi-ahmedabad-merlin_group.jpeg') bottom right no-repeat;
+  background-size: 300px auto, 300px auto;
+  background-blend-mode: lighten;
 }
 
 /* Auth section top-right */
@@ -13,6 +19,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  z-index: 10;
 }
 
 /* Hide buttons by default */
@@ -24,10 +31,11 @@ body {
 #form-view, #table-view {
   max-width: 900px;
   margin: 80px auto 0 auto;
-  background: rgba(255,255,255,0.9);
-  padding: 20px;
+  background: rgba(255,255,255,0.95);
+  padding: 25px;
   border-radius: 12px;
-  box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
+  box-shadow: 0px 6px 20px rgba(0,0,0,0.1);
+  backdrop-filter: blur(6px);
 }
 
 /* Rows and columns */
@@ -50,6 +58,11 @@ button {
   cursor: pointer;
   border-radius: 6px;
   margin-top: 10px;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  opacity: 0.9;
 }
 
 /* Black buttons */
@@ -71,7 +84,8 @@ button {
   border-radius: 10px;
   margin-bottom: 15px;
   position: relative;
-  background: #fafafa;
+  background: rgba(250,250,250,0.95);
+  backdrop-filter: blur(4px);
 }
 
 /* Remove member button */
@@ -95,4 +109,28 @@ button {
 /* Full width Add Resident */
 #add-member-btn {
   width: 100%;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table th, table td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  vertical-align: top;
+}
+
+table th {
+  background: #f0f0f0;
+}
+
+/* HR between member entries */
+.member-info hr {
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 8px 0;
 }
