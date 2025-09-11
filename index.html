@@ -1,156 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Merlin Orion Directory</title>
-  <link rel="stylesheet" href="style.css">
-  <script type="module" src="script.js" defer></script>
-</head>
-<body>
-
-  <!-- Auth Section Top Right -->
-  <div class="auth">
-    <span id="user-details"></span>
-    <button id="sign-in-btn">Sign In</button>
-    <button id="sign-out-btn">Sign Out</button>
-  </div>
-
-  <!-- Form View -->
-  <div id="form-view">
-    <h2>Merlin Orion Society - Member Details</h2>
-    
-    <!-- Flat Number + Resident Type -->
-    <div class="row">
-      <div class="col">
-        <label for="flat-number">Flat Number</label>
-        <select id="flat-number">
-          <option value="">Select Flat Number</option>
-        </select>
-      </div>
-      <div class="col">
-        <label for="resident-type">Resident Type</label>
-        <select id="resident-type">
-          <option value="">Select Resident Type</option>
-          <option value="Owner">Owner</option>
-          <option value="Tenant">Tenant</option>
-        </select>
-      </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Merlin Orion Residents Directory</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Background Collage -->
+    <div class="background-collage">
+      <img src="https://housing-images.n7net.in/012c1500/de401d85f773e7949cdfc64cd6aa27ad/v0/fs.jpeg" class="image-1" alt="Merlin Orion Top Left"/>
+      <img src="https://housing-images.n7net.in/4f2250e8/567357597639a7fd15db7f98026bcc11/v0/fs/merlin_orion-paldi-ahmedabad-merlin_group.jpeg" class="image-2" alt="Merlin Orion Bottom Right"/>
+      <div class="gradient-top-right"></div>
+      <div class="gradient-bottom-left"></div>
     </div>
 
-    <!-- Resident Panels -->
-    <div id="members-container"></div>
-
-    <!-- Add Resident Button -->
-    <button id="add-member-btn">+ Add Resident</button>
-
-    <!-- Actions -->
-    <div class="actions">
-      <button id="view-data-btn">View Submitted Data</button>
-      <button id="submit-btn">Submit</button>
+    <!-- Auth Buttons -->
+    <div class="auth">
+      <button id="sign-in-btn">Sign In</button>
+      <button id="sign-out-btn" class="hidden">Sign Out</button>
+      <span id="user-details"></span>
     </div>
-  </div>
 
-  <!-- Table View -->
-  <div id="table-view" style="display:none;">
-    <h2>Submitted Residents</h2>
-    <table id="residents-table">
-      <thead>
-        <tr>
-          <th>Flat Number</th>
-          <th>Resident Type</th>
-          <th>Members</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <div class="actions">
-      <button id="back-btn">Go Back</button>
-      <button id="export-btn">Export</button>
-    </div>
-  </div>
-
-  <!-- Member Panel Template -->
-  <template id="member-template">
-    <div class="member-block">
-      <button class="remove-member-btn">×</button>
+    <!-- Form View -->
+    <div id="form-view" class="form-container">
       <div class="row">
-        <div class="col">
-          <label>Full Name</label>
-          <input type="text" class="full-name" placeholder="Full Name" required>
+        <div class="col input-group">
+          <label for="flat-number">Flat Number</label>
+          <select id="flat-number">
+            <option value="" disabled selected>Select Flat Number</option>
+            <!-- Options populated via JS -->
+          </select>
         </div>
-        <div class="col">
-          <label>Gender</label>
-          <select class="gender" required>
-            <option value="">Gender</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
+        <div class="col input-group">
+          <label for="resident-type">Resident Type</label>
+          <select id="resident-type">
+            <option value="" disabled selected>Select Resident Type</option>
+            <option value="Owner">Owner</option>
+            <option value="Tenant">Tenant</option>
           </select>
         </div>
       </div>
-      <div class="row">
-        <div class="col">
-          <label>Contact Number</label>
-          <input type="text" class="contact-number" placeholder="Contact Number">
-        </div>
-        <div class="col">
-          <label>Email</label>
-          <input type="email" class="email" placeholder="Email">
-        </div>
+
+      <div id="members-container">
+        <!-- Resident member panels added dynamically -->
       </div>
-      <div class="row">
-        <div class="col">
-          <label>Date of Birth</label>
-          <input type="date" class="dob">
-        </div>
-        <div class="col">
-          <label>Relation to Primary Contact</label>
-          <select class="relation" required>
-            <option value="">Relation</option>
-            <option value="Self">Self</option>
-            <option value="Spouse">Spouse</option>
-            <option value="Father">Father</option>
-            <option value="Mother">Mother</option>
-            <option value="Son">Son</option>
-            <option value="Daughter">Daughter</option>
-            <option value="Daughter In Law">Daughter In Law</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col">
-          <label>Blood Group</label>
-          <select class="blood-group">
-            <option value="">Blood Group</option>
-            <option value="A+">A+</option>
-            <option value="A-">A-</option>
-            <option value="B+">B+</option>
-            <option value="B-">B-</option>
-            <option value="AB+">AB+</option>
-            <option value="AB-">AB-</option>
-            <option value="O+">O+</option>
-            <option value="O-">O-</option>
-          </select>
-        </div>
-        <div class="col">
-          <label>Education</label>
-          <input type="text" class="education" placeholder="Education">
-        </div>
-      </div>
-      <div class="row">
-        <div class="col">
-          <label>Occupation</label>
-          <input type="text" class="occupation" placeholder="Occupation">
-        </div>
-        <div class="col">
-          <label>City (Applicable for NRIs)</label>
-          <input type="text" class="city" placeholder="City (Applicable for NRIs)">
-        </div>
+
+      <button id="add-member-btn">+ Add Resident</button>
+
+      <div class="btn-group">
+        <button id="submit-btn">Submit</button>
+        <button id="view-data-btn">View Submitted Data</button>
       </div>
     </div>
-  </template>
 
-</body>
+    <!-- Table View -->
+    <div id="table-view" class="form-container" style="display:none;">
+      <div class="table-container">
+        <table id="residents-table">
+          <thead>
+            <tr>
+              <th>Flat No.</th>
+              <th>Resident Type</th>
+              <th>Members Info</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Table rows populated via JS -->
+          </tbody>
+        </table>
+      </div>
+      <div class="btn-group">
+        <button id="back-btn">Go Back</button>
+        <button id="export-btn">Export</button>
+      </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+  </body>
 </html>
