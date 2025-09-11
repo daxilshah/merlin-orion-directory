@@ -1,64 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Merlin Orion Residents</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Merlin Orion Residents Directory</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="authSection">
-    <h2>Login to Manage Residents</h2>
-    <button id="loginBtn">Login with Google</button>
-    <button id="logoutBtn" style="display:none;">Logout</button>
-  </div>
+  <header>
+    <h1>Merlin Orion Residents Directory</h1>
+    <div id="auth-controls">
+      <button id="sign-in-btn">Sign in with Google</button>
+      <button id="sign-out-btn" style="display:none;">Sign Out</button>
+      <span id="user-details"></span>
+    </div>
+  </header>
 
-  <section id="formSection" style="display:none;">
-    <h2>Resident Information Form</h2>
-    <form id="residentForm">
-      <label>Flat Number* 
-        <select name="flatNo" required id="flatNoSelect"></select>
-      </label>
-      <label>Resident Type* 
-        <select name="residentType" required>
-          <option value="">Select</option>
-          <option value="Owner">Owner</option>
-          <option value="Tenant">Tenant</option>
-        </select>
-      </label>
+  <!-- Form View -->
+  <section id="form-view">
+    <form id="resident-form">
+      <label for="flatNo">Flat Number*</label>
+      <select id="flatNo" required>
+        <option value="">Select Flat</option>
+        <!-- Flats 101–1404 -->
+        <script>
+          for (let floor = 1; floor <= 14; floor++) {
+            for (let unit = 1; unit <= 4; unit++) {
+              let flatNo = `${floor}${unit.toString().padStart(2, "0")}`;
+              document.write(`<option value="${flatNo}">${flatNo}</option>`);
+            }
+          }
+        </script>
+      </select>
 
-      <div id="membersContainer"></div>
+      <label for="residentType">Resident Type*</label>
+      <select id="residentType" required>
+        <option value="">Select</option>
+        <option>Owner</option>
+        <option>Tenant</option>
+      </select>
+
+      <div id="members-container"></div>
+      <button type="button" id="add-member-btn">Add Member</button>
 
       <div class="form-actions">
-        <button type="button" id="viewDataBtn">View Submitted Data</button>
+        <button type="button" id="view-data-btn">View Submitted Data</button>
         <button type="submit">Submit</button>
       </div>
     </form>
-    <button type="button" id="addMemberBtn" class="floating-btn">+ Add Member</button>
   </section>
 
-  <section id="tableSection" style="display:none;">
-    <h2>Submitted Resident Data</h2>
-    <table id="residentsTable">
+  <!-- Table View -->
+  <section id="table-view" style="display:none;">
+    <table id="data-table">
       <thead>
         <tr>
-          <th>Flat No.</th>
+          <th>Flat No</th>
           <th>Resident Type</th>
           <th>Members</th>
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody id="residentsTableBody"></tbody>
+      <tbody id="data-table-body"></tbody>
     </table>
     <div class="table-actions">
-      <button id="goBackBtn">Go Back</button>
-      <button id="exportBtn">Export PDF</button>
+      <button id="back-btn">Go Back</button>
+      <button id="export-btn">Export</button>
     </div>
   </section>
-  <script type="module" src="script.js"></script>
+
+  <script type="module" src="./script.js"></script>
 </body>
 </html>
