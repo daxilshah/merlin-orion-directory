@@ -1,58 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Merlin Orion Residents Directory</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Merlin Orion Directory</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>Merlin Orion Residents Directory</h1>
-    <div id="auth-controls">
-      <button id="sign-in-btn">Sign in with Google</button>
-      <button id="sign-out-btn" style="display:none;">Sign Out</button>
-      <span id="user-details"></span>
-    </div>
-  </header>
+  <div class="auth">
+    <button id="sign-in-btn">Sign In with Google</button>
+    <button id="sign-out-btn" style="display:none;">Sign Out</button>
+    <div id="user-details"></div>
+  </div>
 
-  <!-- Form View -->
-  <section id="form-view">
+  <div id="form-view">
+    <h2>Resident Information Form</h2>
     <form id="resident-form">
-      <label for="flatNo">Flat Number*</label>
-      <select id="flatNo" required>
-        <option value="">Select Flat</option>
-        <!-- Flats 101–1404 -->
-        <script>
-          for (let floor = 1; floor <= 14; floor++) {
-            for (let unit = 1; unit <= 4; unit++) {
-              let flatNo = `${floor}${unit.toString().padStart(2, "0")}`;
-              document.write(`<option value="${flatNo}">${flatNo}</option>`);
-            }
-          }
-        </script>
-      </select>
+      <label for="flatNo">Flat Number *</label>
+      <select id="flatNo" required></select>
 
-      <label for="residentType">Resident Type*</label>
+      <label for="residentType">Resident Type *</label>
       <select id="residentType" required>
-        <option value="">Select</option>
-        <option>Owner</option>
-        <option>Tenant</option>
+        <option value="">--Select--</option>
+        <option value="Owner">Owner</option>
+        <option value="Tenant">Tenant</option>
       </select>
 
       <div id="members-container"></div>
       <button type="button" id="add-member-btn">Add Member</button>
 
-      <div class="form-actions">
+      <div class="actions">
         <button type="button" id="view-data-btn">View Submitted Data</button>
-        <button type="submit">Submit</button>
+        <button type="submit" id="submit-btn">Submit</button>
       </div>
     </form>
-  </section>
+  </div>
 
-  <!-- Table View -->
-  <section id="table-view" style="display:none;">
-    <table id="data-table">
+  <div id="table-view" style="display:none;">
+    <h2>Submitted Residents</h2>
+    <table border="1">
       <thead>
         <tr>
           <th>Flat No</th>
@@ -63,12 +49,12 @@
       </thead>
       <tbody id="data-table-body"></tbody>
     </table>
-    <div class="table-actions">
+    <div class="actions">
       <button id="back-btn">Go Back</button>
-      <button id="export-btn">Export</button>
+      <button id="export-btn">Export to PDF</button>
     </div>
-  </section>
+  </div>
 
-  <script type="module" src="./script.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
