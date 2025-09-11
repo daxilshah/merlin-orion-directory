@@ -1,4 +1,5 @@
-/* Body - base background color */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
 body {
   font-family: "Inter", sans-serif;
   background-color: #f0f4f8;
@@ -6,7 +7,7 @@ body {
   padding: 0;
 }
 
-/* Background collage container */
+/* Background Collage */
 .background-collage {
   position: fixed;
   top: 0;
@@ -16,167 +17,80 @@ body {
   z-index: -10;
   overflow: hidden;
 }
-
-/* Transparent images in collage */
-.background-collage img {
+.background-collage img,
+.background-collage .gradient {
   position: absolute;
-  object-fit: cover;
   opacity: 0.2;
 }
-
-/* Image 1 - Top Left */
-.image-1 {
-  top: 0;
-  left: 0;
-  width: 70%;
-  height: 80%;
+.background-collage img {
+  object-fit: cover;
 }
+.image-1 { top: 0; left: 0; width: 65%; height: 75%; }
+.image-2 { bottom: 0; right: 0; width: 55%; height: 65%; }
+.gradient-top-right { top: 0; right: 0; width: 40%; height: 40%; background: linear-gradient(to bottom left, #a5b4fc, transparent); }
+.gradient-bottom-left { bottom: 0; left: 0; width: 40%; height: 40%; background: linear-gradient(to top right, #a5b4fc, transparent); }
 
-/* Image 2 - Bottom Right */
-.image-2 {
-  bottom: 0;
-  right: 0;
-  width: 65%;
-  height: 75%;
-}
-
-/* Gradient overlays for remaining space */
-.background-collage .gradient-top-right {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 40%;
-  height: 40%;
-  background: linear-gradient(to bottom left, #a5b4fc, transparent);
-  opacity: 0.3;
-}
-
-.background-collage .gradient-bottom-left {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 40%;
-  height: 40%;
-  background: linear-gradient(to top right, #a5b4fc, transparent);
-  opacity: 0.3;
-}
-
-/* Form container styling */
+/* Form */
 .form-container {
-  max-width: 800px;
-  margin: 2rem auto;
+  max-width: 900px;
+  margin: 3rem auto;
   background-color: rgba(255, 255, 255, 0.9);
-  padding: 2.5rem;
+  padding: 2rem;
   border-radius: 1rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
   position: relative;
   z-index: 10;
 }
 
-/* Input groups */
-.input-group {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 1rem;
-}
+/* Two-column layout */
+.row { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.col { flex: 1; display: flex; flex-direction: column; }
 
-.input-group label {
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: #4a5568;
-}
-
+.input-group label { margin-bottom: 0.5rem; font-weight: 500; color: #4a5568; }
 .input-group input,
 .input-group select {
   border: 1px solid #e2e8f0;
   padding: 0.75rem;
   border-radius: 0.5rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
   background-color: #fff;
+  transition: border-color 0.2s;
 }
-
 .input-group input:focus,
 .input-group select:focus {
   outline: none;
   border-color: #4c51bf;
-  box-shadow: 0 0 0 2px rgba(76, 81, 191, 0.2);
+  box-shadow: 0 0 0 2px rgba(76,81,191,0.2);
 }
-
 input::placeholder,
-select option:disabled {
-  color: #a0a0a0;
-}
+select option:disabled { color: #a0a0a0; }
 
-/* Resident panel styling */
+/* Resident Section */
 .resident-section {
   border: 1px solid #e2e8f0;
-  padding: 1.5rem;
+  padding: 1rem;
   border-radius: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   position: relative;
   background-color: #f9fafb;
 }
+.resident-section .remove-member-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  border: none;
+  background: transparent;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
 
 /* Buttons */
-.btn-group {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
+.btn-black { background-color: black; color: white; padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; }
+.btn-gray { background-color: #e2e8f0; color: black; padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; }
 
-button {
-  padding: 0.75rem 1.25rem;
-  border-radius: 0.5rem;
-  border: none;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
+.btn-group { display: flex; gap: 1rem; }
 
-button:hover {
-  opacity: 0.9;
-}
-
-/* Primary black buttons */
-#add-member-btn,
-#submit-btn,
-#export-btn,
-#sign-in-btn,
-#sign-out-btn {
-  background-color: #000;
-  color: #fff;
-}
-
-/* Secondary gray buttons */
-#view-data-btn,
-#back-btn {
-  background-color: #e5e7eb;
-  color: #000;
-}
-
-/* Table styling */
-.table-container {
-  overflow-x: auto;
-  margin-top: 2rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  padding: 1rem;
-  text-align: left;
-  border-bottom: 1px solid #e2e8f0;
-  white-space: nowrap;
-}
-
-th {
-  background-color: #f8fafc;
-  font-weight: 600;
-  color: #2d3748;
-}
+/* Table */
+.table-container { overflow-x: auto; margin-top: 2rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+th { background-color: #f8fafc; font-weight: 600; color: #2d3748; }
