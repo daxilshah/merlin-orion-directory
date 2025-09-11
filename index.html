@@ -16,21 +16,21 @@
       <div class="gradient-bottom-left"></div>
     </div>
 
-    <!-- Auth Buttons -->
-    <div class="auth">
-      <button id="sign-in-btn">Sign In</button>
-      <button id="sign-out-btn" class="hidden">Sign Out</button>
-      <span id="user-details"></span>
+    <!-- Auth Buttons Top Right -->
+    <div class="auth absolute top-4 right-4 flex items-center gap-2">
+      <button id="sign-in-btn" class="btn-black">Sign In</button>
+      <button id="sign-out-btn" class="btn-black hidden">Sign Out</button>
+      <span id="user-details" class="text-gray-700"></span>
     </div>
 
     <!-- Form View -->
     <div id="form-view" class="form-container">
+      <!-- Flat Number & Resident Type -->
       <div class="row">
         <div class="col input-group">
           <label for="flat-number">Flat Number</label>
           <select id="flat-number">
             <option value="" disabled selected>Select Flat Number</option>
-            <!-- Options populated via JS -->
           </select>
         </div>
         <div class="col input-group">
@@ -43,20 +43,21 @@
         </div>
       </div>
 
-      <div id="members-container">
-        <!-- Resident member panels added dynamically -->
-      </div>
+      <!-- Members -->
+      <div id="members-container"></div>
 
-      <button id="add-member-btn">+ Add Resident</button>
+      <!-- Add Resident Button -->
+      <button id="add-member-btn" class="w-full btn-black my-2">+ Add Resident</button>
 
-      <div class="btn-group">
-        <button id="submit-btn">Submit</button>
-        <button id="view-data-btn">View Submitted Data</button>
+      <!-- Submit / View Data Buttons -->
+      <div class="btn-group flex justify-between">
+        <button id="submit-btn" class="btn-black">Submit</button>
+        <button id="view-data-btn" class="btn-gray">View Submitted Data</button>
       </div>
     </div>
 
     <!-- Table View -->
-    <div id="table-view" class="form-container" style="display:none;">
+    <div id="table-view" class="form-container hidden">
       <div class="table-container">
         <table id="residents-table">
           <thead>
@@ -67,14 +68,12 @@
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody>
-            <!-- Table rows populated via JS -->
-          </tbody>
+          <tbody></tbody>
         </table>
       </div>
-      <div class="btn-group">
-        <button id="back-btn">Go Back</button>
-        <button id="export-btn">Export</button>
+      <div class="btn-group flex justify-between mt-4">
+        <button id="back-btn" class="btn-gray">Go Back</button>
+        <button id="export-btn" class="btn-black">Export</button>
       </div>
     </div>
 
