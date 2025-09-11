@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
 body {
   font-family: "Inter", sans-serif;
   background-color: #f0f4f8;
@@ -56,13 +57,18 @@ pre {
 /* Form container */
 .form-container {
   max-width: 900px;
-  margin: 2rem auto;
+  margin: 4.5rem auto;
   background-color: rgba(255, 255, 255, 0.9);
-  padding: 2.5rem;
+  padding: 1rem; /* Mobile default */
   border-radius: 1rem;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
   position: relative;
   z-index: 10;
+}
+@media (min-width: 768px) {
+  .form-container {
+    padding: 2.5rem; /* Desktop */
+  }
 }
 
 /* Input groups */
@@ -114,10 +120,17 @@ select option:disabled {
   font-weight: normal;
 }
 
+/* Responsive form rows */
 .form-row {
   display: flex;
+  flex-direction: column;
   gap: 1rem;
   margin-bottom: 1rem;
+}
+@media (min-width: 768px) {
+  .form-row {
+    flex-direction: row;
+  }
 }
 .form-row .form-group {
   flex: 1;
@@ -166,16 +179,56 @@ th {
 }
 
 select {
-  appearance: none; /* remove default styling */
+  appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg fill='none' stroke='currentColor' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   background-size: 1rem 1rem;
-  padding-right: 2rem; /* ensures text doesn't overlap icon */
+  padding-right: 2rem;
   border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
   padding: 0.5rem 0.75rem;
   background-color: #fff;
+}
+
+/* Toast container adjustments for mobile */
+#toastContainer {
+  top: 1rem;
+  right: 1rem;
+}
+@media (min-width: 640px) {
+  #toastContainer {
+    top: 1rem;
+    right: 1rem;
+  }
+}
+
+/* Sign out section adjustments */
+#signOutSection {
+  flex-direction: row; /* default for desktop */
+  top: 1rem;
+  right: 1rem;
+  gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  #signinPanel {
+    margin: 1rem;
+  }
+
+  #signOutSection {
+    position: relative;
+    flex-direction: column; /* stack vertically on mobile */
+    align-items: flex-end;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    gap: 0.25rem;
+  }
+
+  /* Push the form container down so it doesn't get overlapped */
+  .form-container {
+    margin: 1rem 0.5rem 0 0.5rem;
+  }
 }

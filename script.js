@@ -113,6 +113,10 @@ function createResidentPanel(data = {}) {
         "Son",
         "Daughter",
         "Daughter In Law",
+        "Grand Father",
+        "Grand Mother",
+        "Grand Son",
+        "Grand Daughter",
         "Other",
       ],
       "Select Relation",
@@ -213,7 +217,7 @@ auth.onAuthStateChanged((user) => {
   if (user) {
     signinPanel.classList.add("hidden");
     formContainer.classList.remove("hidden");
-    userDetails.textContent = `Logged in as: ${user.email}`;
+    userDetails.textContent = `Welcome, ${user.email}`;
     signOutSection.classList.remove("hidden");
   } else {
     signinPanel.classList.remove("hidden");
@@ -313,6 +317,7 @@ async function editResident(docId, data) {
     await setDoc(doc(db, "residents", docId), {
       flatId: flatNumber.value,
       residentType: residentType.value,
+      nativePlace: nativePlace.value || "",
       members,
       memberEmails,
       createdBy: auth.currentUser.email,
@@ -384,7 +389,8 @@ viewDataBtn.onclick = async () => {
         "bg-gray-200",
         "text-black",
         "rounded",
-        "mr-2"
+        "mr-2",
+        "mb-2"
       );
       editBtn.onclick = () => editResident(resident.id, data);
 
@@ -395,7 +401,8 @@ viewDataBtn.onclick = async () => {
         "py-2",
         "bg-gray-200",
         "text-black",
-        "rounded"
+        "rounded",
+        "mb-2"
       );
       deleteBtn.onclick = async () => {
         if (confirm("Are you sure you want to delete this record?")) {
@@ -411,7 +418,7 @@ viewDataBtn.onclick = async () => {
     tr.innerHTML = `
       <td>${data.flatId}</td>
       <td>${data.residentType}</td>
-      <td>${data.nativePlace}</td>
+      <td>${data.nativePlace || ""}</td>
       <td><pre>${memberInfo}</pre></td>
     `;
     tr.appendChild(actionsTd);
@@ -435,7 +442,7 @@ exportBtn.onclick = () => {
   const rows = dataList.querySelectorAll("tr");
   rows.forEach((row, index) => {
     const cols = Array.from(row.querySelectorAll("td, th"));
-    const rowData = cols.slice(0, 3).map((td) => td.innerText.trim());
+    const rowData = cols.slice(0, 4).map((td) => td.innerText.trim());
     tableRows.push(rowData);
   });
   const headers = tableRows.shift();
@@ -445,7 +452,7 @@ exportBtn.onclick = () => {
     startY: 30,
     theme: "grid",
     styles: { fontSize: 10, cellWidth: "wrap" },
-    headStyles: { fillColor: [100, 100, 100] },
+    headStyles: { fillColor: [100, 100, 100, 100] },
   });
   doc.save("MerlinOrionResidents.pdf");
 };
