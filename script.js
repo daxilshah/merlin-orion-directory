@@ -41,6 +41,7 @@ const userDetails = document.getElementById("userDetails");
 const residentForm = document.getElementById("residentForm");
 const flatNumber = document.getElementById("flatNumber");
 const residentType = document.getElementById("residentType");
+const nativePlace = document.getElementById("nativePlace");
 const residentsContainer = document.getElementById("residentsContainer");
 const addResidentBtn = document.getElementById("addResidentBtn");
 const viewDataBtn = document.getElementById("viewDataBtn");
@@ -247,6 +248,7 @@ residentForm.onsubmit = async (e) => {
   await setDoc(docRef, {
     flatId: flatNumber.value,
     residentType: residentType.value,
+    nativePlace: nativePlace.value || "",
     members,
     memberEmails,
     createdBy: currentUser.email,
@@ -282,43 +284,44 @@ async function editResident(docId, data) {
   // Set Flat Number and Resident Type
   flatNumber.value = data.flatId;
   residentType.value = data.residentType;
+  nativePlace.value = data.nativePlace || "";
 
   // Add resident panels for each member
-  data.members.forEach(member => {
+  data.members.forEach((member) => {
     createResidentPanel(member);
   });
 
   // Override form submit temporarily to update existing record
   const originalSubmit = residentForm.onsubmit;
-  residentForm.onsubmit = async e => {
+  residentForm.onsubmit = async (e) => {
     e.preventDefault();
     const members = [];
-    document.querySelectorAll(".resident-panel").forEach(panel => {
+    document.querySelectorAll(".resident-panel").forEach((panel) => {
       const member = {};
-      panel.querySelectorAll("input, select").forEach(inp => {
+      panel.querySelectorAll("input, select").forEach((inp) => {
         member[inp.id] = inp.value;
       });
       members.push(member);
     });
 
-    if(members.length === 0){
-      showToast("Please add at least one resident","error");
+    if (members.length === 0) {
+      showToast("Please add at least one resident", "error");
       return;
     }
 
-    const memberEmails = members.map(m => m.email).filter(Boolean);
+    const memberEmails = members.map((m) => m.email).filter(Boolean);
     await setDoc(doc(db, "residents", docId), {
       flatId: flatNumber.value,
       residentType: residentType.value,
       members,
       memberEmails,
-      createdBy: auth.currentUser.email
+      createdBy: auth.currentUser.email,
     });
 
     showToast("Resident record updated successfully", "success");
     residentForm.reset();
     residentsContainer.innerHTML = "";
-    
+
     // Restore original submit handler
     residentForm.onsubmit = originalSubmit;
 
@@ -337,6 +340,7 @@ viewDataBtn.onclick = async () => {
     <tr>
       <th>Flat No</th>
       <th>Resident Type</th>
+      <th>Native</th>
       <th>Members</th>
       <th></th>
     </tr>
@@ -407,6 +411,7 @@ viewDataBtn.onclick = async () => {
     tr.innerHTML = `
       <td>${data.flatId}</td>
       <td>${data.residentType}</td>
+      <td>${data.nativePlace}</td>
       <td><pre>${memberInfo}</pre></td>
     `;
     tr.appendChild(actionsTd);
