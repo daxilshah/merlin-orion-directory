@@ -292,6 +292,7 @@ residentForm.onsubmit = async (e) => {
   showToast("Saved successfully!");
   residentForm.reset();
   residentsContainer.innerHTML = "";
+  viewDataBtn.click();
 };
 
 function calculateAge(dobStr) {
