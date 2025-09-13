@@ -33,6 +33,7 @@ const provider = new GoogleAuthProvider();
 // DOM Elements
 const signinPanel = document.getElementById("signinPanel");
 const panelSignInBtn = document.getElementById("panelSignInBtn");
+const mainContainer = document.getElementById("mainContainer");
 const formContainer = document.getElementById("formContainer");
 const signOutBtn = document.getElementById("signOutBtn");
 const signOutSection = document.getElementById("signOutSection");
@@ -47,8 +48,10 @@ const addResidentBtn = document.getElementById("addResidentBtn");
 const viewDataBtn = document.getElementById("viewDataBtn");
 const dataContainer = document.getElementById("dataContainer");
 const dataList = document.getElementById("dataList");
-const goBackBtn = document.getElementById("goBackBtn");
+const goBackBtn1 = document.getElementById("goBackBtn1");
+const goBackBtn2 = document.getElementById("goBackBtn2");
 const exportBtn = document.getElementById("exportBtn");
+const recordNewEntry = document.getElementById("recordNewEntry");
 
 let currentUser = null;
 
@@ -106,12 +109,22 @@ initFlatNumbers();
 function createResidentPanel(data = {}) {
   const panel = document.createElement("div");
   panel.classList.add("resident-panel");
+  const index = document.querySelectorAll(".resident-panel").length + 1;
+  const header = document.createElement("div");
+  header.className = "resident-header flex justify-between items-center mb-2";
+
+  const title = document.createElement("h3");
+  title.textContent = `Resident #${index}`;
+  title.className = "font-semibold text-lg";
 
   const removeBtn = document.createElement("button");
-  removeBtn.className = "remove-btn text-red-500 mr-2";
+  removeBtn.className = "remove-btn text-red-500";
   removeBtn.innerText = "X";
   removeBtn.onclick = () => panel.remove();
-  panel.appendChild(removeBtn);
+
+  header.appendChild(title);
+  header.appendChild(removeBtn);
+  panel.appendChild(header);
 
   const fields = [
     ["Full Name", "fullName", "text", null, "Enter Full Name"],
@@ -234,13 +247,13 @@ auth.onAuthStateChanged(async (user) => {
   console.log(user);
   if (user) {
     signinPanel.classList.add("hidden");
-    formContainer.classList.remove("hidden");
-    userDetails.textContent = `Welcome, ${user.email}`;
+    mainContainer.classList.remove("hidden");
+    userDetails.textContent = `Welcome, ${user.displayName || user.email}`;
     signOutSection.classList.remove("hidden");
     await disableUsedFlats();
   } else {
     signinPanel.classList.remove("hidden");
-    formContainer.classList.add("hidden");
+    mainContainer.classList.add("hidden");
     signOutSection.classList.add("hidden");
   }
 });
@@ -297,6 +310,7 @@ function calculateAge(dobStr) {
 
 async function editResident(docId, data) {
   // Hide data table and show form
+  mainContainer.classList.add("hidden");
   dataContainer.classList.add("hidden");
   formContainer.classList.remove("hidden");
 
@@ -351,13 +365,35 @@ async function editResident(docId, data) {
 
     // Return to data view
     formContainer.classList.add("hidden");
+    mainContainer.classList.add("hidden");
     dataContainer.classList.remove("hidden");
     viewDataBtn.onclick(); // Refresh table
   };
 }
 
+recordNewEntry.onclick = async () => {
+  mainContainer.classList.add("hidden");
+  formContainer.classList.remove("hidden");
+  dataContainer.classList.add("hidden");
+};
+
+goBackBtn1.onclick = async () => {
+  dataContainer.classList.add("hidden");
+  formContainer.classList.add("hidden");
+  mainContainer.classList.remove("hidden");
+  await disableUsedFlats();
+};
+
+goBackBtn2.onclick = async () => {
+  dataContainer.classList.add("hidden");
+  formContainer.classList.add("hidden");
+  mainContainer.classList.remove("hidden");
+  await disableUsedFlats();
+};
+
 // View Data
 viewDataBtn.onclick = async () => {
+  mainContainer.classList.add("hidden");
   formContainer.classList.add("hidden");
   dataContainer.classList.remove("hidden");
   await disableUsedFlats();
@@ -446,13 +482,6 @@ viewDataBtn.onclick = async () => {
 
     dataList.appendChild(tr);
   });
-};
-
-// Go back
-goBackBtn.onclick = async () => {
-  dataContainer.classList.add("hidden");
-  formContainer.classList.remove("hidden");
-  await disableUsedFlats();
 };
 
 // Export PDF

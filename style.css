@@ -102,7 +102,7 @@ select option:disabled {
 
 /* Resident panels */
 .resident-panel {
-  border: 1px solid #e2e8f0;
+  border: 1px solid #c1c6ce;
   padding: 1.5rem;
   border-radius: 0.75rem;
   margin-bottom: 1.5rem;
@@ -110,9 +110,6 @@ select option:disabled {
   background-color: #f9fafb;
 }
 .resident-panel .remove-btn {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
   background: none;
   border: none;
   font-size: 1rem;
