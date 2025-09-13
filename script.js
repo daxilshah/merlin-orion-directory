@@ -248,7 +248,7 @@ auth.onAuthStateChanged(async (user) => {
   if (user) {
     signinPanel.classList.add("hidden");
     mainContainer.classList.remove("hidden");
-    userDetails.textContent = `Welcome, ${user.displayName || user.email}`;
+    userDetails.textContent = `Hi, ${user.displayName || user.email}`;
     signOutSection.classList.remove("hidden");
     await disableUsedFlats();
   } else {
