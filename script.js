@@ -52,6 +52,7 @@ const goBackBtn1 = document.getElementById("goBackBtn1");
 const goBackBtn2 = document.getElementById("goBackBtn2");
 const exportBtn = document.getElementById("exportBtn");
 const recordNewEntry = document.getElementById("recordNewEntry");
+const loader = document.getElementById("loader");
 
 let currentUser = null;
 
@@ -70,6 +71,14 @@ function showToast(message, type = "success", duration = 3000) {
   }, duration);
 }
 
+// Loader functions
+function showLoader() {
+  loader.classList.remove("hidden");
+}
+function hideLoader() {
+  loader.classList.add("hidden");
+}
+
 // Initialize flat numbers
 function initFlatNumbers() {
   flatNumber.innerHTML =
@@ -86,14 +95,19 @@ function initFlatNumbers() {
 }
 
 async function disableUsedFlats() {
+  showLoader();
   const snapshot = await getDocs(collection(db, "residents"));
   const usedFlats = new Set();
-  snapshot.forEach((docSnap) => {
-    const data = docSnap.data();
-    if (data.flatId) {
-      usedFlats.add(data.flatId);
-    }
-  });
+  try {
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      if (data.flatId) {
+        usedFlats.add(data.flatId);
+      }
+    });
+  } finally {
+    hideLoader();
+  }
 
   [...flatNumber.options].forEach((opt) => {
     if (usedFlats.has(opt.value)) {
@@ -312,19 +326,24 @@ residentForm.onsubmit = async (e) => {
     return;
   }
 
-  const docRef = doc(db, "residents", flatNumber.value);
-  await setDoc(docRef, {
-    flatId: flatNumber.value,
-    residentType: residentType.value,
-    nativePlace: nativePlace.value || "",
-    members,
-    memberEmails,
-    createdBy: currentUser.email,
-  });
-  showToast("Saved successfully!");
-  residentForm.reset();
-  residentsContainer.innerHTML = "";
-  viewDataBtn.click();
+  showLoader();
+  try {
+    const docRef = doc(db, "residents", flatNumber.value);
+    await setDoc(docRef, {
+      flatId: flatNumber.value,
+      residentType: residentType.value,
+      nativePlace: nativePlace.value || "",
+      members,
+      memberEmails,
+      createdBy: currentUser.email,
+    });
+    showToast("Saved successfully!");
+    residentForm.reset();
+    residentsContainer.innerHTML = "";
+    viewDataBtn.click();
+  } finally {
+    hideLoader();
+  }
 };
 
 function calculateAge(dobStr) {
@@ -372,15 +391,19 @@ async function editResident(docId, data) {
       showToast("Please add at least one resident", "error");
       return;
     }
-
-    await setDoc(doc(db, "residents", docId), {
-      flatId: flatNumber.value,
-      residentType: residentType.value,
-      nativePlace: nativePlace.value || "",
-      members,
-      memberEmails,
-      createdBy: auth.currentUser.email,
-    });
+    showLoader();
+    try {
+      await setDoc(doc(db, "residents", docId), {
+        flatId: flatNumber.value,
+        residentType: residentType.value,
+        nativePlace: nativePlace.value || "",
+        members,
+        memberEmails,
+        createdBy: auth.currentUser.email,
+      });
+    } finally {
+      hideLoader();
+    }
 
     showToast("Resident record updated successfully", "success");
     residentForm.reset();
@@ -423,111 +446,130 @@ viewDataBtn.onclick = async () => {
   formContainer.classList.add("hidden");
   dataContainer.classList.remove("hidden");
   await disableUsedFlats();
-  dataList.innerHTML = `
-    <tr>
-      <th>Flat No</th>
-      <th>Resident Type</th>
-      <th>Native</th>
-      <th>Members</th>
-      <th></th>
-    </tr>
-  `;
-
-  const snapshot = await getDocs(collection(db, "residents"));
-  const residentsArray = snapshot.docs.map((docSnap) => ({
-    id: docSnap.id,
-    data: docSnap.data(),
-  }));
-  residentsArray.sort(
-    (a, b) => parseInt(a.data.flatId) - parseInt(b.data.flatId)
-  );
-
-  residentsArray.forEach((resident) => {
-    const data = resident.data;
-    const tr = document.createElement("tr");
-    const memberInfo = data.members
-      .map((m) => {
-        let dataStr = ``;
-        const fieldOrder = {
-          fullName: "Name",
-          gender: "Gender",
-          contact: "Contact No.",
-          email: "Email",
-          maritalStatus: "Marital Status",
-          dob: "DOB",
-          relation: "Relation",
-          bloodGroup: "Blood Group",
-          education: "Education",
-          occupation: "Occupation",
-          city: "City (If NRIs)",
-        };
-        for (let key in fieldOrder) {
-          if (m[key]) {
-            if (key === "dob") {
-              dataStr += `<strong>Age:</strong> ${calculateAge(
-                m.dob
-              )} (<strong>DOB:</strong> ${m.dob})\n`;
-            } else {
-              dataStr += `<strong>${fieldOrder[key]}:</strong> ${m[key]}\n`;
+  showLoader();
+  try {
+    dataList.innerHTML = `
+      <tr>
+        <th>Flat No</th>
+        <th>Members Detail</th>
+        <th></th>
+      </tr>
+    `;
+  
+    const snapshot = await getDocs(collection(db, "residents"));
+    const residentsArray = snapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      data: docSnap.data(),
+    }));
+    residentsArray.sort(
+      (a, b) => parseInt(a.data.flatId) - parseInt(b.data.flatId)
+    );
+  
+    residentsArray.forEach((resident) => {
+      const data = resident.data;
+      const tr = document.createElement("tr");
+      let memberMetadata = `<strong>Resident Type:</strong> ${data.residentType}\n`;
+      if(data.nativePlace) {
+        memberMetadata += `<strong>Native:</strong> ${data.nativePlace}\n`
+      }
+      memberMetadata += `<strong>Total Members:</strong> ${data.members.length}\n\n`
+      const memberInfo = memberMetadata + data.members
+        .map((m) => {
+          let dataStr = ``;
+          const fieldOrder = {
+            fullName: "Name",
+            gender: "Gender",
+            contact: "Contact No.",
+            email: "Email",
+            maritalStatus: "Marital Status",
+            dob: "DOB",
+            relation: "Relation",
+            bloodGroup: "Blood Group",
+            education: "Education",
+            occupation: "Occupation",
+            city: "City (If NRIs)",
+          };
+          for (let key in fieldOrder) {
+            if (m[key]) {
+              if (key === "dob") {
+                dataStr += `<strong>Age:</strong> ${calculateAge(
+                  m.dob
+                )} (<strong>DOB:</strong> ${m.dob ? m.dob.split("-").reverse().join("/") : ''})\n`;
+              } else {
+                dataStr += `<strong>${fieldOrder[key]}:</strong> ${m[key]}\n`;
+              }
             }
           }
-        }
-        return dataStr;
-      })
-      .join("\n");
-
-    const actionsTd = document.createElement("td");
-    const currentUserEmail = auth.currentUser?.email;
-    const canEditOrDelete =
-      data.createdBy === currentUserEmail ||
-      (data.memberEmails && data.memberEmails.includes(currentUserEmail));
-    if (canEditOrDelete) {
-      const editBtn = document.createElement("button");
-      editBtn.textContent = "Edit";
-      editBtn.classList.add(
-        "px-4",
-        "py-2",
-        "bg-gray-200",
-        "text-black",
-        "rounded",
-        "mr-2",
-        "mb-2"
-      );
-      editBtn.onclick = () => editResident(resident.id, data);
-
-      const deleteBtn = document.createElement("button");
-      deleteBtn.textContent = "Delete";
-      deleteBtn.classList.add(
-        "px-4",
-        "py-2",
-        "bg-gray-200",
-        "text-black",
-        "rounded",
-        "mb-2"
-      );
-      deleteBtn.onclick = async () => {
-        if (confirm("Are you sure you want to delete this record?")) {
-          await deleteDoc(doc(db, "residents", resident.id));
-          tr.remove();
-          showToast("Record deleted successfully", "success");
-          await disableUsedFlats();
-        }
-      };
-      actionsTd.appendChild(editBtn);
-      actionsTd.appendChild(deleteBtn);
-    }
-
-    tr.innerHTML = `
-      <td>${data.flatId}</td>
-      <td>${data.residentType}</td>
-      <td>${data.nativePlace || ""}</td>
-      <td><pre class="details-renderer">${memberInfo}</pre></td>
-    `;
-    tr.appendChild(actionsTd);
-
-    dataList.appendChild(tr);
-  });
+          return dataStr;
+        })
+        .join("\n");
+  
+      const actionsTd = document.createElement("td");
+      const currentUserEmail = auth.currentUser?.email;
+      const canEditOrDelete =
+        data.createdBy === currentUserEmail ||
+        (data.memberEmails && data.memberEmails.includes(currentUserEmail));
+      if (canEditOrDelete) {
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "Edit";
+        editBtn.classList.add(
+          "px-4",
+          "py-2",
+          "bg-black", 
+          "text-white",
+          "rounded",
+          "mr-2",
+          "mb-2"
+        );
+        editBtn.onclick = () => editResident(resident.id, data);
+  
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Delete";
+        deleteBtn.classList.add(
+          "px-4",
+          "py-2",
+          "bg-red-500", 
+          "text-white",
+          "rounded",
+          "mb-2"
+        );
+        deleteBtn.onclick = async () => {
+          if (confirm("Are you sure you want to delete this record?")) {
+            await deleteDoc(doc(db, "residents", resident.id));
+            tr.remove();
+            showToast("Record deleted successfully", "success");
+            await disableUsedFlats();
+          }
+        };
+        actionsTd.appendChild(editBtn);
+        actionsTd.appendChild(deleteBtn);
+      }
+  
+      tr.innerHTML = `
+        <td><strong>${data.flatId}</strong></td>
+        <td class="details-renderer-cell"><pre class="details-renderer">${memberInfo}</pre></td>
+      `;
+      tr.appendChild(actionsTd);
+  
+      dataList.appendChild(tr);
+    });
+  } finally {
+    hideLoader();
+  }
 };
+
+function getFormattedDateTime() {
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+
+  return `${day}-${month}-${year}-${hours}-${minutes}-${seconds}`;
+}
 
 // Export PDF
 exportBtn.onclick = () => {
@@ -538,7 +580,7 @@ exportBtn.onclick = () => {
   const rows = dataList.querySelectorAll("tr");
   rows.forEach((row, index) => {
     const cols = Array.from(row.querySelectorAll("td, th"));
-    const rowData = cols.slice(0, 4).map((td) => td.innerText.trim());
+    const rowData = cols.slice(0, 2).map((td) => td.innerText.trim());
     tableRows.push(rowData);
   });
   const headers = tableRows.shift();
@@ -550,8 +592,8 @@ exportBtn.onclick = () => {
     styles: { fontSize: 10, cellWidth: "wrap" },
     headStyles: { fillColor: [100, 100, 100, 100] },
     columnStyles: {
-      3: { cellWidth: 80 }, // Adjust the width of the 'Members' column to provide more space
+      2: { cellWidth: 80 }, // Adjust the width of the 'Members' column to provide more space
     },
   });
-  doc.save("MerlinOrionResidents.pdf");
+  doc.save(`MerlinOrionResidents-${getFormattedDateTime()}.pdf`);
 };
