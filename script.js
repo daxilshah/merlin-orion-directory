@@ -129,9 +129,9 @@ function createResidentPanel(data = {}) {
   const fields = [
     ["Full Name", "fullName", "text", null, "Enter Full Name"],
     ["Gender", "gender", "select", ["Male", "Female"], "Select Gender"],
+    ["Date of Birth", "dob", "date", null, "dd/mm/yyyy"],
     ["Contact Number", "contact", "text", null, "Enter Contact Number"],
     ["Email", "email", "email", null, "Enter Email Address"],
-    ["Date of Birth", "dob", "date", null, "dd/mm/yyyy"],
     [
       "Relation to Primary Contact",
       "relation",
@@ -160,6 +160,20 @@ function createResidentPanel(data = {}) {
       "Select Blood Group",
     ],
     [
+      "Marital Status",
+      "maritalStatus",
+      "select",
+      ["Single", "Married"],
+      "Select Status",
+    ],
+    [
+      "City (Applicable for NRIs)",
+      "city",
+      "text",
+      null,
+      "Enter City (e.g., London, New York)",
+    ],
+    [
       "Education",
       "education",
       "text",
@@ -173,63 +187,61 @@ function createResidentPanel(data = {}) {
       null,
       "Enter Occupation (e.g., Engineer, Teacher)",
     ],
-    [
-      "City (Applicable for NRIs)",
-      "city",
-      "text",
-      null,
-      "Enter City (e.g., London, New York)",
-    ],
   ];
 
   const mandatoryFields = ["fullName", "gender", "relation"];
 
-  for (let i = 0; i < fields.length; i += 2) {
-    const row = document.createElement("div");
-    row.classList.add("form-row");
-    for (let j = 0; j < 2; j++) {
-      if (i + j >= fields.length) break;
-      const [labelText, id, type, options, placeholder] = fields[i + j];
-      const group = document.createElement("div");
-      group.classList.add("form-group");
-      const label = document.createElement("label");
-      label.textContent = labelText;
-      if (mandatoryFields.includes(id)) {
-        const star = document.createElement("span");
-        star.textContent = " *";
-        star.classList.add("text-red-500");
-        label.appendChild(star);
-      }
-      let input;
-      if (type === "select") {
-        input = document.createElement("select");
-        if (placeholder) {
-          const ph = document.createElement("option");
-          ph.textContent = placeholder;
-          ph.disabled = true;
-          ph.selected = !data[id];
-          input.appendChild(ph);
+  const formFieldGenerator = (fields) => {
+    for (let i = 0; i < fields.length; i += 2) {
+      const row = document.createElement("div");
+      row.classList.add("form-row");
+      for (let j = 0; j < 2; j++) {
+        if (i + j >= fields.length) break;
+        const [labelText, id, type, options, placeholder] = fields[i + j];
+        const group = document.createElement("div");
+        group.classList.add("form-group");
+        const label = document.createElement("label");
+        label.textContent = labelText;
+        if (mandatoryFields.includes(id)) {
+          const star = document.createElement("span");
+          star.textContent = " *";
+          star.classList.add("text-red-500");
+          label.appendChild(star);
         }
-        options.forEach((opt) => {
-          const o = document.createElement("option");
-          o.value = o.textContent = opt;
-          input.appendChild(o);
-        });
-        if (data[id]) input.value = data[id];
-      } else {
-        input = document.createElement("input");
-        input.type = type;
-        input.value = data[id] || "";
-        input.placeholder = placeholder || labelText;
+        let input;
+        if (type === "select") {
+          input = document.createElement("select");
+          if (placeholder) {
+            const ph = document.createElement("option");
+            ph.textContent = placeholder;
+            ph.disabled = true;
+            ph.selected = !data[id];
+            ph.value = "";
+            input.appendChild(ph);
+          }
+          options.forEach((opt) => {
+            const o = document.createElement("option");
+            o.value = o.textContent = opt;
+            input.appendChild(o);
+          });
+          if (data[id]) input.value = data[id];
+        } else {
+          input = document.createElement("input");
+          input.type = type;
+          input.value = data[id] || "";
+          input.placeholder = placeholder || labelText;
+        }
+        input.required = mandatoryFields.includes(id);
+        input.id = id;
+        group.appendChild(label);
+        group.appendChild(input);
+        row.appendChild(group);
       }
-      input.required = mandatoryFields.includes(id);
-      input.id = id;
-      group.appendChild(label);
-      group.appendChild(input);
-      row.appendChild(group);
+      panel.appendChild(row);
     }
-    panel.appendChild(row);
   }
+  formFieldGenerator(fields.slice(0, 1));
+  formFieldGenerator(fields.slice(1, fields.length));
   residentsContainer.appendChild(panel);
 }
 
@@ -244,7 +256,6 @@ signOutBtn.onclick = () => {
 // Auth state
 auth.onAuthStateChanged(async (user) => {
   currentUser = user;
-  console.log(user);
   if (user) {
     signinPanel.classList.add("hidden");
     mainContainer.classList.remove("hidden");
@@ -255,31 +266,52 @@ auth.onAuthStateChanged(async (user) => {
     signinPanel.classList.remove("hidden");
     mainContainer.classList.add("hidden");
     signOutSection.classList.add("hidden");
+    formContainer.classList.add("hidden");
+    dataContainer.classList.add("hidden");
+    residentForm.reset();
+    residentsContainer.innerHTML = "";
   }
 });
 addResidentBtn.onclick = () => createResidentPanel();
 
-// Form submit
-residentForm.onsubmit = async (e) => {
-  e.preventDefault();
+// Reusable function to get and validate form data
+function getResidentData() {
   if (!flatNumber.value || !residentType.value) {
     showToast("Please select Flat Number and Resident Type", "error");
-    return;
+    return { isValid: false };
   }
   const members = [];
   document.querySelectorAll(".resident-panel").forEach((panel) => {
     const member = {};
-    panel.querySelectorAll("input,select").forEach((inp) => {
+    panel.querySelectorAll("input, select").forEach((inp) => {
       member[inp.id] = inp.value;
     });
     members.push(member);
   });
+  const missingFields = members.some((member) => {
+    return !member.fullName || !member.gender || !member.relation;
+  });
+  if (missingFields) {
+    showToast(
+      "Please fill in all mandatory fields for each resident.",
+      "error"
+    );
+    return { isValid: false };
+  }
+  const memberEmails = members.map((m) => m.email).filter(Boolean);
+  return { members, memberEmails, isValid: true };
+}
+
+// Form submit
+residentForm.onsubmit = async (e) => {
+  e.preventDefault();
+  const { members, memberEmails, isValid } = getResidentData();
+  if (!isValid) return;
   if (members.length === 0) {
     showToast("Please add at least one resident", "error");
     return;
   }
 
-  const memberEmails = members.map((m) => m.email).filter(Boolean);
   const docRef = doc(db, "residents", flatNumber.value);
   await setDoc(docRef, {
     flatId: flatNumber.value,
@@ -333,21 +365,14 @@ async function editResident(docId, data) {
   const originalSubmit = residentForm.onsubmit;
   residentForm.onsubmit = async (e) => {
     e.preventDefault();
-    const members = [];
-    document.querySelectorAll(".resident-panel").forEach((panel) => {
-      const member = {};
-      panel.querySelectorAll("input, select").forEach((inp) => {
-        member[inp.id] = inp.value;
-      });
-      members.push(member);
-    });
+    const { members, memberEmails, isValid } = getResidentData();
+    if (!isValid) return;
 
     if (members.length === 0) {
       showToast("Please add at least one resident", "error");
       return;
     }
 
-    const memberEmails = members.map((m) => m.email).filter(Boolean);
     await setDoc(doc(db, "residents", docId), {
       flatId: flatNumber.value,
       residentType: residentType.value,
@@ -422,15 +447,34 @@ viewDataBtn.onclick = async () => {
     const tr = document.createElement("tr");
     const memberInfo = data.members
       .map((m) => {
-        return `Name: ${m.fullName}\nGender: ${m.gender}\nContact No: ${
-          m.contact
-        }\nEmail: ${m.email}\nAge: ${calculateAge(m.dob)} (DOB: ${
-          m.dob
-        })\nRelation: ${m.relation}\nBlood Group: ${m.bloodGroup}\nEducation: ${
-          m.education
-        }\nOccupation: ${m.occupation}\nCity (If NRIs): ${m.city}`;
+        let dataStr = ``;
+        const fieldOrder = {
+          fullName: "Name",
+          gender: "Gender",
+          contact: "Contact No.",
+          email: "Email",
+          maritalStatus: "Marital Status",
+          dob: "DOB",
+          relation: "Relation",
+          bloodGroup: "Blood Group",
+          education: "Education",
+          occupation: "Occupation",
+          city: "City (If NRIs)",
+        };
+        for (let key in fieldOrder) {
+          if (m[key]) {
+            if (key === "dob") {
+              dataStr += `<strong>Age:</strong> ${calculateAge(
+                m.dob
+              )} (<strong>DOB:</strong> ${m.dob})\n`;
+            } else {
+              dataStr += `<strong>${fieldOrder[key]}:</strong> ${m[key]}\n`;
+            }
+          }
+        }
+        return dataStr;
       })
-      .join("\n\n");
+      .join("\n");
 
     const actionsTd = document.createElement("td");
     const currentUserEmail = auth.currentUser?.email;
@@ -477,7 +521,7 @@ viewDataBtn.onclick = async () => {
       <td>${data.flatId}</td>
       <td>${data.residentType}</td>
       <td>${data.nativePlace || ""}</td>
-      <td><pre>${memberInfo}</pre></td>
+      <td><pre class="details-renderer">${memberInfo}</pre></td>
     `;
     tr.appendChild(actionsTd);
 
@@ -505,6 +549,9 @@ exportBtn.onclick = () => {
     theme: "grid",
     styles: { fontSize: 10, cellWidth: "wrap" },
     headStyles: { fillColor: [100, 100, 100, 100] },
+    columnStyles: {
+      3: { cellWidth: 80 }, // Adjust the width of the 'Members' column to provide more space
+    },
   });
   doc.save("MerlinOrionResidents.pdf");
 };

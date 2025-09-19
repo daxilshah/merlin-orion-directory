@@ -244,3 +244,7 @@ select {
     padding-right: 2rem;
   }
 }
+
+.details-renderer {
+  white-space: pre-line;
+}
