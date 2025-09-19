@@ -596,4 +596,5 @@ exportBtn.onclick = () => {
     },
   });
   doc.save(`MerlinOrionResidents-${getFormattedDateTime()}.pdf`);
+  showToast("File downloaded successfully!");
 };
