@@ -52,6 +52,8 @@ const goBackBtn1 = document.getElementById("goBackBtn1");
 const goBackBtn2 = document.getElementById("goBackBtn2");
 const exportBtn = document.getElementById("exportBtn");
 const recordNewEntry = document.getElementById("recordNewEntry");
+const vehiclesContainer = document.getElementById("vehiclesContainer");
+const addVehicleBtn = document.getElementById("addVehicleBtn");
 const loader = document.getElementById("loader");
 
 let currentUser = null;
@@ -131,6 +133,56 @@ function updateResidentNumbers() {
   });
   hideLoader();
 }
+
+const formFieldGenerator = (fields, mandatoryFields, panel, data) => {
+  for (let i = 0; i < fields.length; i += 2) {
+    const row = document.createElement("div");
+    row.classList.add("form-row");
+    for (let j = 0; j < 2; j++) {
+      if (i + j >= fields.length) break;
+      const [labelText, id, type, options, placeholder] = fields[i + j];
+      const group = document.createElement("div");
+      group.classList.add("form-group");
+      const label = document.createElement("label");
+      label.textContent = labelText;
+      if (mandatoryFields.includes(id)) {
+        const star = document.createElement("span");
+        star.textContent = " *";
+        star.classList.add("text-red-500");
+        label.appendChild(star);
+      }
+      let input;
+      if (type === "select") {
+        input = document.createElement("select");
+        if (placeholder) {
+          const ph = document.createElement("option");
+          ph.textContent = placeholder;
+          ph.disabled = true;
+          ph.selected = !data[id];
+          ph.value = "";
+          input.appendChild(ph);
+        }
+        options.forEach((opt) => {
+          const o = document.createElement("option");
+          o.value = o.textContent = opt;
+          input.appendChild(o);
+        });
+        if (data[id]) input.value = data[id];
+      } else {
+        input = document.createElement("input");
+        input.type = type;
+        input.value = data[id] || "";
+        input.placeholder = placeholder || labelText;
+      }
+      input.required = mandatoryFields.includes(id);
+      input.id = id;
+      group.appendChild(label);
+      group.appendChild(input);
+      row.appendChild(group);
+    }
+    panel.appendChild(row);
+  }
+};
 
 // Resident panel creation
 function createResidentPanel(data = {}) {
@@ -218,61 +270,71 @@ function createResidentPanel(data = {}) {
   ];
 
   const mandatoryFields = ["fullName", "gender", "relation"];
-
-  const formFieldGenerator = (fields) => {
-    for (let i = 0; i < fields.length; i += 2) {
-      const row = document.createElement("div");
-      row.classList.add("form-row");
-      for (let j = 0; j < 2; j++) {
-        if (i + j >= fields.length) break;
-        const [labelText, id, type, options, placeholder] = fields[i + j];
-        const group = document.createElement("div");
-        group.classList.add("form-group");
-        const label = document.createElement("label");
-        label.textContent = labelText;
-        if (mandatoryFields.includes(id)) {
-          const star = document.createElement("span");
-          star.textContent = " *";
-          star.classList.add("text-red-500");
-          label.appendChild(star);
-        }
-        let input;
-        if (type === "select") {
-          input = document.createElement("select");
-          if (placeholder) {
-            const ph = document.createElement("option");
-            ph.textContent = placeholder;
-            ph.disabled = true;
-            ph.selected = !data[id];
-            ph.value = "";
-            input.appendChild(ph);
-          }
-          options.forEach((opt) => {
-            const o = document.createElement("option");
-            o.value = o.textContent = opt;
-            input.appendChild(o);
-          });
-          if (data[id]) input.value = data[id];
-        } else {
-          input = document.createElement("input");
-          input.type = type;
-          input.value = data[id] || "";
-          input.placeholder = placeholder || labelText;
-        }
-        input.required = mandatoryFields.includes(id);
-        input.id = id;
-        group.appendChild(label);
-        group.appendChild(input);
-        row.appendChild(group);
-      }
-      panel.appendChild(row);
-    }
-  };
-  formFieldGenerator(fields.slice(0, 1));
-  formFieldGenerator(fields.slice(1, fields.length));
+  formFieldGenerator(fields.slice(0, 1), mandatoryFields, panel, data);
+  formFieldGenerator(
+    fields.slice(1, fields.length),
+    mandatoryFields,
+    panel,
+    data
+  );
   residentsContainer.appendChild(panel);
   updateResidentNumbers(); // renumber after adding
 }
+
+function updateVehicleNumbers() {
+  document.querySelectorAll(".vehicle-panel").forEach((panel, index) => {
+    const title = panel.querySelector(".vehicle-title");
+    if (title) {
+      title.textContent = `Vehicle #${index + 1}`;
+    }
+  });
+}
+
+function createVehiclePanel(data = {}) {
+  const panel = document.createElement("div");
+  panel.classList.add("vehicle-panel");
+  const header = document.createElement("div");
+  header.className = "vehicle-header flex justify-between items-center mb-2";
+
+  const title = document.createElement("h3");
+  title.className = "vehicle-title font-semibold text-lg";
+  title.textContent = "Vehicle";
+  header.appendChild(title);
+
+  const removeBtn = document.createElement("button");
+  removeBtn.className = "remove-btn text-red-500";
+  removeBtn.innerText = "X";
+  removeBtn.onclick = () => {
+    panel.remove();
+    updateVehicleNumbers(); // renumber after removal
+  };
+  header.appendChild(removeBtn);
+  panel.appendChild(header);
+
+  const fields = [
+    [
+      "Vehicle Type",
+      "vehicleType",
+      "select",
+      ["2 Wheeler", "4 Wheeler"],
+      "Select Vehicle Type",
+    ],
+    [
+      "Vehicle Reg. No",
+      "vehicleNo",
+      "text",
+      null,
+      "Reg. Number (e.g., GJ-01-AB-1234)",
+    ],
+  ];
+
+  const mandatoryFields = ["vehicleType", "vehicleNo"];
+  formFieldGenerator(fields, mandatoryFields, panel, data);
+  vehiclesContainer.appendChild(panel);
+  updateVehicleNumbers(); // renumber after adding
+}
+
+addVehicleBtn.onclick = () => createVehiclePanel();
 
 // Auth
 panelSignInBtn.onclick = () => {
@@ -300,6 +362,7 @@ auth.onAuthStateChanged(async (user) => {
     dataContainer.classList.add("hidden");
     residentForm.reset();
     residentsContainer.innerHTML = "";
+    vehiclesContainer.innerHTML = "";
   }
   hideLoader();
 });
@@ -319,6 +382,15 @@ function getResidentData() {
     });
     members.push(member);
   });
+  const vehicles = [];
+  document.querySelectorAll(".vehicle-panel").forEach((panel) => {
+    const vehicle = {};
+    panel.querySelectorAll("input, select").forEach((inp) => {
+      vehicle[inp.id] = inp.value;
+    });
+    vehicles.push(vehicle);
+  });
+
   const missingFields = members.some((member) => {
     return !member.fullName || !member.gender || !member.relation;
   });
@@ -327,13 +399,13 @@ function getResidentData() {
     return { isValid: false };
   }
   const memberEmails = members.map((m) => m.email).filter(Boolean);
-  return { members, memberEmails, isValid: true };
+  return { members, memberEmails, vehicles, isValid: true };
 }
 
 // Form submit
 residentForm.onsubmit = async (e) => {
   e.preventDefault();
-  const { members, memberEmails, isValid } = getResidentData();
+  const { members, memberEmails, vehicles, isValid } = getResidentData();
   if (!isValid) return;
   if (members.length === 0) {
     showToast("Please add at least one member", "error");
@@ -349,11 +421,13 @@ residentForm.onsubmit = async (e) => {
       nativePlace: nativePlace.value || "",
       members,
       memberEmails,
+      vehicles,
       createdBy: currentUser.email,
     });
     showToast("Saved successfully!");
     residentForm.reset();
     residentsContainer.innerHTML = "";
+    vehiclesContainer.innerHTML = "";
     viewDataBtn.click();
   } finally {
     hideLoader();
@@ -383,6 +457,7 @@ async function editResident(docId, data) {
   // Reset form
   residentForm.reset();
   residentsContainer.innerHTML = "";
+  vehiclesContainer.innerHTML = "";
 
   // Set Flat Number and Resident Type
   flatNumber.value = data.flatId;
@@ -394,11 +469,15 @@ async function editResident(docId, data) {
     createResidentPanel(member);
   });
 
+  data.vehicles?.forEach((vehicle) => {
+    createVehiclePanel(vehicle);
+  });
+
   // Override form submit temporarily to update existing record
   const originalSubmit = residentForm.onsubmit;
   residentForm.onsubmit = async (e) => {
     e.preventDefault();
-    const { members, memberEmails, isValid } = getResidentData();
+    const { members, memberEmails, vehicles, isValid } = getResidentData();
     if (!isValid) return;
 
     if (members.length === 0) {
@@ -413,6 +492,7 @@ async function editResident(docId, data) {
         nativePlace: nativePlace.value || "",
         members,
         memberEmails,
+        vehicles,
         createdBy: auth.currentUser.email,
       });
     } finally {
@@ -465,7 +545,8 @@ viewDataBtn.onclick = async () => {
     dataList.innerHTML = `
       <tr>
         <th>Flat No</th>
-        <th>Members Detail</th>
+        <th>Members</th>
+        <th>Vehicles</th>
         <th></th>
       </tr>
     `;
@@ -522,9 +603,20 @@ viewDataBtn.onclick = async () => {
           })
           .join("\n");
 
+      const sortedVehicles = data.vehicles?.sort((a, b) =>
+        a.vehicleType > b.vehicleType ? -1 : 1
+      );
+      const vehicleInfo =
+        sortedVehicles
+          ?.map((v) => {
+            return `${v.vehicleNo} (${v.vehicleType})\n`;
+          })
+          .join("") || "";
+
       const actionsTd = document.createElement("td");
       const currentUserEmail = auth.currentUser?.email;
       const canEditOrDelete =
+        currentUserEmail === "daxil001@gmail.com" ||
         data.createdBy === currentUserEmail ||
         (data.memberEmails && data.memberEmails.includes(currentUserEmail));
       if (canEditOrDelete) {
@@ -566,6 +658,7 @@ viewDataBtn.onclick = async () => {
       tr.innerHTML = `
         <td><strong>${data.flatId}</strong></td>
         <td class="details-renderer-cell"><pre class="details-renderer">${memberInfo}</pre></td>
+        <td class="vehicle-details-renderer-cell"><pre class="vehicle-details-renderer">${vehicleInfo}</pre></td>
       `;
       tr.appendChild(actionsTd);
 
@@ -592,29 +685,52 @@ function getFormattedDateTime() {
 // Export PDF
 exportBtn.onclick = () => {
   showLoader();
-  const doc = new jsPDF();
+
+  const doc = new jsPDF({ unit: "pt", format: "a4", orientation: "portrait" });
   doc.setFontSize(16);
-  doc.text("Merlin Orion Residents Directory", 14, 20);
+  doc.text("Merlin Orion Residents Directory", 30, 20);
+
   const tableRows = [];
   const rows = dataList.querySelectorAll("tr");
-  rows.forEach((row, index) => {
+  rows.forEach((row) => {
     const cols = Array.from(row.querySelectorAll("td, th"));
-    const rowData = cols.slice(0, 2).map((td) => td.innerText.trim());
+    const rowData = cols.slice(0, 3).map((td) => td.innerText.trim());
     tableRows.push(rowData);
   });
+
   const headers = tableRows.shift();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const marginLeftRight = 30; // pts
+  const usableWidth = pageWidth - marginLeftRight * 2;
+
+  const col1 = Math.max(120, Math.floor(usableWidth * 0.6));
+  const col2 = Math.max(70, Math.floor(usableWidth * 0.3));
+  const col0 = usableWidth - col2 - col1;
+
   autoTable(doc, {
     head: [headers],
     body: tableRows,
     startY: 30,
     theme: "grid",
-    styles: { fontSize: 10, cellWidth: "wrap" },
-    headStyles: { fillColor: [100, 100, 100, 100] },
+    margin: { left: marginLeftRight, right: marginLeftRight },
+    tableWidth: "auto",
+    styles: {
+      fontSize: 10,
+      cellPadding: 6,
+      overflow: "linebreak",
+      cellWidth: "wrap",
+    },
+    headStyles: { fillColor: [100, 100, 100] },
     columnStyles: {
-      2: { cellWidth: 80 }, // Adjust the width of the 'Members' column to provide more space
+      0: { cellWidth: col0 },
+      1: { cellWidth: col1 },
+      2: { cellWidth: col2, minCellHeight: 12 },
     },
   });
+
   doc.save(`MerlinOrionResidents-${getFormattedDateTime()}.pdf`);
   hideLoader();
-  showToast("File downloaded successfully! Please check your Downloads folder.");
+  showToast(
+    "File downloaded successfully! Please check your Downloads folder."
+  );
 };
