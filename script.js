@@ -75,6 +75,7 @@ function showToast(message, type = "success", duration = 3000) {
 function showLoader() {
   loader.classList.remove("hidden");
 }
+
 function hideLoader() {
   loader.classList.add("hidden");
 }
@@ -109,34 +110,47 @@ async function disableUsedFlats() {
     hideLoader();
   }
 
-  [...flatNumber.options].forEach((opt) => {
+  [...flatNumber.options].forEach((opt, idx) => {
     if (usedFlats.has(opt.value)) {
       opt.disabled = true;
-      opt.textContent = `${opt.value} (Exists)`;
+    } else if (idx !== 0) {
+      opt.disabled = false;
     }
   });
 }
 
 initFlatNumbers();
 
+function updateResidentNumbers() {
+  showLoader();
+  document.querySelectorAll(".resident-panel").forEach((panel, index) => {
+    const title = panel.querySelector(".resident-title");
+    if (title) {
+      title.textContent = `Resident #${index + 1}`;
+    }
+  });
+  hideLoader();
+}
+
 // Resident panel creation
 function createResidentPanel(data = {}) {
   const panel = document.createElement("div");
   panel.classList.add("resident-panel");
-  const index = document.querySelectorAll(".resident-panel").length + 1;
   const header = document.createElement("div");
   header.className = "resident-header flex justify-between items-center mb-2";
 
   const title = document.createElement("h3");
-  title.textContent = `Resident #${index}`;
-  title.className = "font-semibold text-lg";
+  title.className = "resident-title font-semibold text-lg";
+  title.textContent = "Resident";
+  header.appendChild(title);
 
   const removeBtn = document.createElement("button");
   removeBtn.className = "remove-btn text-red-500";
   removeBtn.innerText = "X";
-  removeBtn.onclick = () => panel.remove();
-
-  header.appendChild(title);
+  removeBtn.onclick = () => {
+    panel.remove();
+    updateResidentNumbers(); // renumber after removal
+  };
   header.appendChild(removeBtn);
   panel.appendChild(header);
 
@@ -253,10 +267,11 @@ function createResidentPanel(data = {}) {
       }
       panel.appendChild(row);
     }
-  }
+  };
   formFieldGenerator(fields.slice(0, 1));
   formFieldGenerator(fields.slice(1, fields.length));
   residentsContainer.appendChild(panel);
+  updateResidentNumbers(); // renumber after adding
 }
 
 // Auth
@@ -268,6 +283,7 @@ signOutBtn.onclick = () => {
 };
 
 // Auth state
+showLoader();
 auth.onAuthStateChanged(async (user) => {
   currentUser = user;
   if (user) {
@@ -285,6 +301,7 @@ auth.onAuthStateChanged(async (user) => {
     residentForm.reset();
     residentsContainer.innerHTML = "";
   }
+  hideLoader();
 });
 addResidentBtn.onclick = () => createResidentPanel();
 
@@ -306,10 +323,7 @@ function getResidentData() {
     return !member.fullName || !member.gender || !member.relation;
   });
   if (missingFields) {
-    showToast(
-      "Please fill in all mandatory fields for each resident.",
-      "error"
-    );
+    showToast("Please fill in all mandatory fields for each members.", "error");
     return { isValid: false };
   }
   const memberEmails = members.map((m) => m.email).filter(Boolean);
@@ -322,7 +336,7 @@ residentForm.onsubmit = async (e) => {
   const { members, memberEmails, isValid } = getResidentData();
   if (!isValid) return;
   if (members.length === 0) {
-    showToast("Please add at least one resident", "error");
+    showToast("Please add at least one member", "error");
     return;
   }
 
@@ -388,7 +402,7 @@ async function editResident(docId, data) {
     if (!isValid) return;
 
     if (members.length === 0) {
-      showToast("Please add at least one resident", "error");
+      showToast("Please add at least one member", "error");
       return;
     }
     showLoader();
@@ -455,7 +469,7 @@ viewDataBtn.onclick = async () => {
         <th></th>
       </tr>
     `;
-  
+
     const snapshot = await getDocs(collection(db, "residents"));
     const residentsArray = snapshot.docs.map((docSnap) => ({
       id: docSnap.id,
@@ -464,46 +478,50 @@ viewDataBtn.onclick = async () => {
     residentsArray.sort(
       (a, b) => parseInt(a.data.flatId) - parseInt(b.data.flatId)
     );
-  
+
     residentsArray.forEach((resident) => {
       const data = resident.data;
       const tr = document.createElement("tr");
       let memberMetadata = `<strong>Resident Type:</strong> ${data.residentType}\n`;
-      if(data.nativePlace) {
-        memberMetadata += `<strong>Native:</strong> ${data.nativePlace}\n`
+      if (data.nativePlace) {
+        memberMetadata += `<strong>Native:</strong> ${data.nativePlace}\n`;
       }
-      memberMetadata += `<strong>Total Members:</strong> ${data.members.length}\n\n`
-      const memberInfo = memberMetadata + data.members
-        .map((m) => {
-          let dataStr = ``;
-          const fieldOrder = {
-            fullName: "Name",
-            gender: "Gender",
-            contact: "Contact No.",
-            email: "Email",
-            maritalStatus: "Marital Status",
-            dob: "DOB",
-            relation: "Relation",
-            bloodGroup: "Blood Group",
-            education: "Education",
-            occupation: "Occupation",
-            city: "City (If NRIs)",
-          };
-          for (let key in fieldOrder) {
-            if (m[key]) {
-              if (key === "dob") {
-                dataStr += `<strong>Age:</strong> ${calculateAge(
-                  m.dob
-                )} (<strong>DOB:</strong> ${m.dob ? m.dob.split("-").reverse().join("/") : ''})\n`;
-              } else {
-                dataStr += `<strong>${fieldOrder[key]}:</strong> ${m[key]}\n`;
+      memberMetadata += `<strong>Total Members:</strong> ${data.members.length}\n\n`;
+      const memberInfo =
+        memberMetadata +
+        data.members
+          .map((m) => {
+            let dataStr = ``;
+            const fieldOrder = {
+              fullName: "Name",
+              gender: "Gender",
+              contact: "Contact No.",
+              email: "Email",
+              maritalStatus: "Marital Status",
+              dob: "DOB",
+              relation: "Relation",
+              bloodGroup: "Blood Group",
+              education: "Education",
+              occupation: "Occupation",
+              city: "City (If NRIs)",
+            };
+            for (let key in fieldOrder) {
+              if (m[key]) {
+                if (key === "dob") {
+                  dataStr += `<strong>Age:</strong> ${calculateAge(
+                    m.dob
+                  )} (<strong>DOB:</strong> ${
+                    m.dob ? m.dob.split("-").reverse().join("/") : ""
+                  })\n`;
+                } else {
+                  dataStr += `<strong>${fieldOrder[key]}:</strong> ${m[key]}\n`;
+                }
               }
             }
-          }
-          return dataStr;
-        })
-        .join("\n");
-  
+            return dataStr;
+          })
+          .join("\n");
+
       const actionsTd = document.createElement("td");
       const currentUserEmail = auth.currentUser?.email;
       const canEditOrDelete =
@@ -515,20 +533,20 @@ viewDataBtn.onclick = async () => {
         editBtn.classList.add(
           "px-4",
           "py-2",
-          "bg-black", 
+          "bg-black",
           "text-white",
           "rounded",
           "mr-2",
           "mb-2"
         );
         editBtn.onclick = () => editResident(resident.id, data);
-  
+
         const deleteBtn = document.createElement("button");
         deleteBtn.textContent = "Delete";
         deleteBtn.classList.add(
           "px-4",
           "py-2",
-          "bg-red-500", 
+          "bg-red-500",
           "text-white",
           "rounded",
           "mb-2"
@@ -544,13 +562,13 @@ viewDataBtn.onclick = async () => {
         actionsTd.appendChild(editBtn);
         actionsTd.appendChild(deleteBtn);
       }
-  
+
       tr.innerHTML = `
         <td><strong>${data.flatId}</strong></td>
         <td class="details-renderer-cell"><pre class="details-renderer">${memberInfo}</pre></td>
       `;
       tr.appendChild(actionsTd);
-  
+
       dataList.appendChild(tr);
     });
   } finally {
@@ -562,17 +580,18 @@ function getFormattedDateTime() {
   const now = new Date();
 
   const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
-  const day = String(now.getDate()).padStart(2, '0');
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+  const day = String(now.getDate()).padStart(2, "0");
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  const seconds = String(now.getSeconds()).padStart(2, "0");
 
   return `${day}-${month}-${year}-${hours}-${minutes}-${seconds}`;
 }
 
 // Export PDF
 exportBtn.onclick = () => {
+  showLoader();
   const doc = new jsPDF();
   doc.setFontSize(16);
   doc.text("Merlin Orion Residents Directory", 14, 20);
@@ -596,5 +615,6 @@ exportBtn.onclick = () => {
     },
   });
   doc.save(`MerlinOrionResidents-${getFormattedDateTime()}.pdf`);
+  hideLoader();
   showToast("File downloaded successfully!");
 };

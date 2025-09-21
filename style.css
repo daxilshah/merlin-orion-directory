@@ -58,7 +58,7 @@ pre {
 .form-container {
   max-width: 900px;
   margin: 4.5rem auto;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.95);
   padding: 1rem; /* Mobile default */
   border-radius: 1rem;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
@@ -217,16 +217,17 @@ select {
 
   #signOutSection {
     position: relative;
-    flex-direction: column; /* stack vertically on mobile */
-    align-items: flex-end;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
     padding: 0.5rem;
     border-radius: 0.5rem;
-    gap: 0.25rem;
+    gap: 0.5rem;
   }
 
   /* Push the form container down so it doesn't get overlapped */
   .form-container {
-    margin: 1rem 0.5rem 0 0.5rem;
+    margin: 2rem 0.5rem 0 0.5rem;
   }
 
   /* Ensure date fields expand full width on mobile */
