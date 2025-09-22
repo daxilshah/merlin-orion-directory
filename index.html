@@ -178,10 +178,11 @@
       <h1 class="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-center">
         Merlin Orion Residents Directory
       </h1>
+      <input type="text" class="border border-gray-300 rounded px-3 py-2 mb-4 w-full" id="residentSearch" placeholder="🔍 Search by Member Details, Vehicle Details, Flat Number, etc."/>
       <div class="overflow-x-auto">
         <table id="dataList" class="min-w-full text-left border rounded"></table>
       </div>
-      <div class="flex flex-row justify-between mt-4 gap-4">
+      <div class="flex flex-row justify-between mt-4 gap-4" id="dataContainerActions">
         <button
           id="goBackBtn2"
           type="button"
@@ -191,6 +192,7 @@
         </button>
         <button
           id="exportBtn"
+          type="button"
           class="w-full md:w-auto px-4 py-2 bg-black text-white rounded"
         >
           Export
