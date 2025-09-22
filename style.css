@@ -101,6 +101,7 @@ select option:disabled {
 }
 
 /* Resident panels */
+.vehicle-panel,
 .resident-panel {
   border: 1px solid #c1c6ce;
   padding: 1.5rem;
@@ -109,6 +110,7 @@ select option:disabled {
   position: relative;
   background-color: #f9fafb;
 }
+.vehicle-panel  .remove-btn,
 .resident-panel .remove-btn {
   background: none;
   border: none;
@@ -250,6 +252,11 @@ select {
   min-width: 400px;
 }
 
+.vehicle-details-renderer-cell {
+  min-width: 400px;
+}
+
+.vehicle-details-renderer,
 .details-renderer {
   white-space: pre-line;
 }
